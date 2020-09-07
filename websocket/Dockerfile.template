@@ -1,0 +1,68 @@
+FROM balenalib/%%BALENA_MACHINE_NAME%%-node:8-stretch-build AS build
+
+# Defines our working directory in container
+WORKDIR /usr/src/app
+RUN install_packages \
+    libbluetooth-dev \
+    libcups2-dev \
+    libcupsimage2-dev \
+    python build-essential libusb-1.0-0-dev \
+    libudev-dev \
+    python build-essential libusb-1.0-0-dev 
+
+
+
+# Copies the package.json first for better cache on later pushes
+COPY package.json package.json
+
+# This install npm dependencies on the balena build server,
+# making sure to clean up the artifacts it creates in order to reduce the image size.
+RUN JOBS=MAX npm install --production --unsafe-perm && npm cache verify
+
+FROM balenalib/%%BALENA_MACHINE_NAME%%-node:8-stretch
+
+WORKDIR /usr/src/app
+RUN apt-get update && apt-get install -y --no-install-recommends apt-utils && rm -rf /var/lib/apt/lists/*
+
+RUN install_packages \
+    libbluetooth-dev \
+    libcups2-dev \
+    cups \
+    libcupsimage2-dev \
+    nano \
+    wget \
+    unzip \
+    redis-server \
+    dbus \
+    udev \
+    libudev-dev \
+    python build-essential libusb-1.0-0-dev 
+
+COPY --from=build /usr/src/app/node_modules /usr/src/app/node_modules
+
+# Defines our working directory in container
+# Install dependencies - remove rsync
+
+
+# This will copy all files in our root to the working  directory in the container
+COPY ./build ./build
+COPY ./logos ./logos
+
+RUN npm install pm2 -g --no-optional
+
+# Enable udev for detection of dynamically plugged devices
+ENV UDEV=on
+COPY udev/symlink.rules /etc/udev/rules.d/symlink.rules
+COPY start.sh ./
+COPY kevin.pdf kevin.pdf
+# ENV API_KEY 335654d2600faead9936251ea066f4a9
+ENV DEVICE_MAC b8:27:eb:3c:61:4b
+ENV FRONTEND_URL https://entabeni-api-staging.herokuapp.com/?frontEndUrl=https://pos-demo.entabeni.tech/
+ENV WEBSOCKET_URL wss://entabeni-api-staging.herokuapp.com/cable
+
+
+# Make udev script executable
+# RUN chmod +x udev/copy.sh
+COPY package.json package.json
+
+CMD ["bash", "start.sh"]

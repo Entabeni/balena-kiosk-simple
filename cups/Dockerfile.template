@@ -1,0 +1,37 @@
+FROM balenalib/%%BALENA_MACHINE_NAME%%:build
+
+# Install the packages we need. Avahi will be included
+RUN install_packages \
+    cups \
+    iptables \
+    avahi-daemon \
+        libcups2-dev \
+    libcupsimage2-dev \
+    python build-essential libusb-1.0-0-dev \
+    dbus \
+    libnss-mdns \
+    foomatic-db-compressed-ppds \
+    printer-driver-brlaser \
+    hplip \
+    hplip-data
+
+WORKDIR /usr/src/app
+COPY ./dynamo ./dynamo
+COPY ./ultracupsdrv ./ultracupsdrv
+RUN  cd /usr/src/app/dynamo/ && ./build.sh
+RUN  cd /usr/src/app/dynamo/ && make install
+RUN  cd /usr/src/app/ultracupsdrv && make clean && make && make install
+# Add script
+COPY run.sh run.sh
+
+# Enable USB devices
+ENV UDEV 1
+
+# Add cupsd.conf file
+COPY cupsd.conf /etc/cups/cupsd.conf
+
+# Link DBUS file where hp-setup expects it
+RUN ln -s /host/run/dbus /var/run/dbus
+
+#Run Script
+CMD ["bash", "/usr/src/app/run.sh"]
