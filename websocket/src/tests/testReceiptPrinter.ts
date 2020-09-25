@@ -5,8 +5,8 @@ function mp(relPath) {
   return path.resolve(__dirname, relPath);
 }
 const resortLogo = process.env.LOGO || "cooper";
-const receiptVendorId = process.env.RECEIPT_VENDOR_ID || "0x0483";
-const receiptProductId = process.env.RECEIPT_PROCDUCT_ID || "0x5743";
+const receiptVendorId = process.env.RECEIPT_VENDOR_ID || "0x0519";
+const receiptProductId = process.env.RECEIPT_PROCDUCT_ID || "0x2013";
 class ReceiptPrinter {
   getRounded(num: number) {
     // @ts-ignore

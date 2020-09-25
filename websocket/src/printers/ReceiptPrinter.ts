@@ -5,8 +5,8 @@ const path = require("path");
 
 const currency: string = "$";
 const resortLogo = process.env.LOGO || "cooper";
-const receiptVendorId = process.env.RECEIPT_VENDOR_ID || "0x0483";
-const receiptProductId = process.env.RECEIPT_PROCDUCT_ID || "0x5743";
+const receiptVendorId = process.env.RECEIPT_VENDOR_ID || "0x0519";
+const receiptProductId = process.env.RECEIPT_PROCDUCT_ID || "0x2013";
 //@ts-ignore
 export function mp(relPath: string) {
   return path.resolve(__dirname, relPath);

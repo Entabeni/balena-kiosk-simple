@@ -123,9 +123,15 @@ fi
 if [ ! -z ${KIOSK+x} ] && [ "$KIOSK" -eq "1" ]
   then
     echo "Enabling kiosk mode"
-    export CHROME_LAUNCH_URL="--app=$LAUNCH_URL" 
+    export CHROME_LAUNCH_URL="--app=https://$LAUNCH_URL/?printTerminalID=$PRINT_TERMINAL_ID" 
   else
-    export CHROME_LAUNCH_URL="$LAUNCH_URL"
+    export CHROME_LAUNCH_URL="https://$LAUNCH_URL/?printTerminalID=$PRINT_TERMINAL_ID"
+fi
+# This sets the cursor to show by default
+if [ ! -z ${KIOSK+x} ] && [ "$KIOSK" -eq "1" ] && [ "$CLIENT_FACING" -eq "0" ]  
+  then
+    echo "Enabling kiosk mode"
+    export CHROME_LAUNCH_URL="--app=https://$LAUNCH_URL/?customerFacingPrintTerminal=$PRINT_TERMINAL_ID&hs=$BALENA_SUPERVISOR_API_KEY" 
 fi
 
  #Set whether to show a cursor or not
@@ -152,7 +158,15 @@ echo "chromium-browser $CHROME_LAUNCH_URL $FLAGS  --window-size=$WINDOW_SIZE --w
 chmod 770 /home/chromium/*.sh 
 chown chromium:chromium /home/chromium/xstart.sh
 
-
+if [[  ${CLIENT_FACING} -eq "0" ]]
+  then
+    echo "Killing services"
+    curl --header "Content-Type:application/json" "$BALENA_SUPERVISOR_ADDRESS/v2/applications/$BALENA_APP_ID/stop-service?apikey=$BALENA_SUPERVISOR_API_KEY" -d '{"serviceName": "redis"}'
+    curl --header "Content-Type:application/json" "$BALENA_SUPERVISOR_ADDRESS/v2/applications/$BALENA_APP_ID/stop-service?apikey=$BALENA_SUPERVISOR_API_KEY" -d '{"serviceName": "cups"}'
+    curl --header "Content-Type:application/json" "$BALENA_SUPERVISOR_ADDRESS/v2/applications/$BALENA_APP_ID/stop-service?apikey=$BALENA_SUPERVISOR_API_KEY" -d '{"serviceName": "websocket"}'
+else
+  echo "Not client facing"
+fi
 
 
 # run script as chromium user

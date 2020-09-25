@@ -5,9 +5,10 @@
     "lib": ["es2015", "dom"],
     "allowJs": true,
     "outDir": "build",
+    "types": ["node"],
     "rootDir": "src",
     "strict": false,
     "noImplicitAny": false,
-    "esModuleInterop": true,
-  },
+    "esModuleInterop": true
+  }
 }

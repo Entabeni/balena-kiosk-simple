@@ -1,7 +1,8 @@
 import NodePrinter, { mp } from "./NodePrint";
 import fs from "fs";
 import printer from "node-native-printer";
-printer.setPrinter("DYMO_LabelWriter_450");
+const printerName = process.env.LABEL_PRINTER || "DYMO_LabelWriter_450";
+printer.setPrinter(printerName);
 
 const pathCard = require("path");
 const printerSide = process.env.PRINTER_SIDE || "Left";

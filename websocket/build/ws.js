@@ -24,17 +24,25 @@ var apollo_link_error_1 = require("apollo-link-error");
 //@ts-ignore
 var apollo_link_http_1 = require("apollo-link-http");
 var apollo_utilities_1 = require("apollo-utilities");
-//@ts-ignore
 var ActionCableLink_1 = __importDefault(require("graphql-ruby-client/subscriptions/ActionCableLink"));
 var jwt_decode_1 = __importDefault(require("jwt-decode"));
 var node_localstorage_1 = require("node-localstorage");
 var ws_1 = __importDefault(require("ws"));
 var isProd = process.env.IS_PRODUCTION === "1";
-var backendUrl = isProd
-    ? "entabeni-api.herokuapp.com"
-    : "entabeni-api-staging.herokuapp.com";
-var websocketUrl = "wss://" + backendUrl + "/cable";
-var deviceMac = process.env.DEVICE_MAC || "CA:2D:E9:8D:17:67";
+var isPreProd = process.env.IS_PRODUCTION === "2";
+var backendUrl;
+if (isProd) {
+    backendUrl = "entabeni-api.herokuapp.com";
+}
+else if (isPreProd) {
+    backendUrl = "pre-production-api.herokuapp.com";
+}
+else {
+    backendUrl = "entabeni-api-staging.herokuapp.com";
+}
+var websocketUrl = "wss://" + backendUrl + "/cable/";
+var envPrintTerminalId = process.env.PRINT_TERMINAL_ID || "c9fff07d-5470-44a1-ad96-2c05872078ea";
+console.log("envPrintTerminalId", envPrintTerminalId);
 var frontendUrl = "https://" + backendUrl + "/?frontEndUrl=https://" + process.env.FRONTEND_URL + "/" ||
     "https://entabeni-api-staging.herokuapp.com/?frontEndUrl=https://pos-demo.entabeni.tech/";
 console.log("frontendUrl", frontendUrl);
@@ -54,7 +62,7 @@ var WebSocket = /** @class */ (function () {
         this.apolloClient = new apollo_client_1.default({
             cache: new apollo_boost_1.InMemoryCache(),
             link: apollo_link_http_1.createHttpLink({
-                uri: "/graphql",
+                uri: "/graphql/",
             }),
         });
         this.state = state;
@@ -73,7 +81,7 @@ var WebSocket = /** @class */ (function () {
         });
         // Create regular NetworkInterface by using apollo-client's API:
         var httpLink = new apollo_boost_1.HttpLink({
-            uri: baseUrl + "/graphql",
+            uri: baseUrl + "/graphql/",
             fetch: node_fetch_1.default,
         });
         // Create WebSocket client
@@ -124,7 +132,6 @@ var WebSocket = /** @class */ (function () {
             return u.json();
         })
             .then(function (res) {
-            console.log("TCL: connect -> res", res);
             var baseUrl = res.baseUrl;
             if (token) {
                 _this.subscribe(token, baseUrl);
@@ -145,11 +152,12 @@ var WebSocket = /** @class */ (function () {
     WebSocket.prototype.loginThenSubscribe = function (baseUrl) {
         var _this = this;
         this.initClient(null, baseUrl);
+        // address.mac(function(err, addr) {
         this.apolloClient
             .mutate({
             mutation: SIGN_IN_TERMINAL_MUTATION,
             variables: {
-                deviceMac: deviceMac,
+                deviceMac: envPrintTerminalId,
                 apiKey: apiKey,
             },
         })
@@ -160,14 +168,12 @@ var WebSocket = /** @class */ (function () {
             //@ts-ignore
             _this.subscribe(token);
         })
-            .catch(function (error) {
-            console.log("TCL: loginThenSubscribe -> error", error);
-        });
+            .catch(function (error) { });
+        // });
     };
     WebSocket.prototype.subscribe = function (token, baseUrl) {
         this.initClient(token, baseUrl);
         var tokenDecoded = jwt_decode_1.default(token);
-        console.log("subscribe -> tokenDecoded", tokenDecoded);
         var that = this;
         this.apolloClient
             .subscribe({
@@ -246,6 +252,7 @@ var WebSocket = /** @class */ (function () {
         });
     };
     WebSocket.prototype.updateScanJob = function (scanJobId, status, cardRfid) {
+        console.log("updateScanJob -> this.apolloClient", this.apolloClient);
         this.apolloClient
             .mutate({
             mutation: UPDATE_SCAN_JOB_MUTATION,

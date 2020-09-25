@@ -22,8 +22,8 @@ var escpos_1 = require("escpos");
 var path = require("path");
 var currency = "$";
 var resortLogo = process.env.LOGO || "cooper";
-var receiptVendorId = process.env.RECEIPT_VENDOR_ID || "0x0483";
-var receiptProductId = process.env.RECEIPT_PROCDUCT_ID || "0x5743";
+var receiptVendorId = process.env.RECEIPT_VENDOR_ID || "0x0519";
+var receiptProductId = process.env.RECEIPT_PROCDUCT_ID || "0x2013";
 //@ts-ignore
 function mp(relPath) {
     return path.resolve(__dirname, relPath);

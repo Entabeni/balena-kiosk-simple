@@ -19,7 +19,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
 var NodePrint_1 = __importDefault(require("./NodePrint"));
 var fs_1 = __importDefault(require("fs"));
 var node_native_printer_1 = __importDefault(require("node-native-printer"));
-node_native_printer_1.default.setPrinter("DYMO_LabelWriter_450");
+var printerName = process.env.LABEL_PRINTER || "DYMO_LabelWriter_450";
+node_native_printer_1.default.setPrinter(printerName);
 var pathCard = require("path");
 var printerSide = process.env.PRINTER_SIDE || "Left";
 function splitIntoLines(input, len) {

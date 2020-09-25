@@ -14,21 +14,34 @@ import { ApolloLink, from, split } from "apollo-link";
 import { onError } from "apollo-link-error";
 //@ts-ignore
 import { createHttpLink } from "apollo-link-http";
+//@ts-ignore
+import getMAC, { isMAC } from "getmac";
 
 import { getMainDefinition } from "apollo-utilities";
-//@ts-ignore
 import ActionCableLink from "graphql-ruby-client/subscriptions/ActionCableLink";
 import jwtDecode from "jwt-decode";
 import { LocalStorage } from "node-localstorage";
 import ws from "ws";
+//@ts-ignore
 import MessageQueue from "./messageQueue";
 import StateMachine from "./stateMachine";
 const isProd = process.env.IS_PRODUCTION === "1";
-const backendUrl = isProd
-  ? "entabeni-api.herokuapp.com"
-  : "entabeni-api-staging.herokuapp.com";
-const websocketUrl = `wss://${backendUrl}/cable`;
-const deviceMac = process.env.DEVICE_MAC || "CA:2D:E9:8D:17:67";
+const deviceMac = getMAC();
+console.log("deviceMac", deviceMac);
+const isPreProd = process.env.IS_PRODUCTION === "2";
+let backendUrl;
+if (isProd) {
+  backendUrl = "entabeni-api.herokuapp.com";
+} else if (isPreProd) {
+  backendUrl = "pre-production-api.herokuapp.com";
+} else {
+  backendUrl = "entabeni-api-staging.herokuapp.com";
+}
+const websocketUrl = `wss://${backendUrl}/cable/`;
+
+const envPrintTerminalId =
+  process.env.PRINT_TERMINAL_ID || "c9fff07d-5470-44a1-ad96-2c05872078ea";
+console.log("envPrintTerminalId", envPrintTerminalId);
 const frontendUrl =
   `https://${backendUrl}/?frontEndUrl=https://${process.env.FRONTEND_URL}/` ||
   "https://entabeni-api-staging.herokuapp.com/?frontEndUrl=https://pos-demo.entabeni.tech/";
@@ -105,9 +118,17 @@ export const GET_SALE_DETAILS_BY_ID = gql`
 `;
 
 const SIGN_IN_TERMINAL_MUTATION = gql`
-  mutation SignInTerminal($deviceMac: String!, $apiKey: String!) {
+  mutation SignInTerminal(
+    $deviceMac: String!
+    $apiKey: String!
+    $printTerminalId: String!
+  ) {
     pos {
-      signInTerminal(deviceMac: $deviceMac, apiKey: $apiKey) {
+      signInTerminal(
+        deviceMac: $deviceMac
+        apiKey: $apiKey
+        printTerminalId: $printTerminalId
+      ) {
         success
         authToken
       }
@@ -179,7 +200,7 @@ class WebSocket {
   apolloClient = new ApolloClient({
     cache: new InMemoryCache(),
     link: createHttpLink({
-      uri: `/graphql`, // Your GraphQL endpoint
+      uri: `/graphql/`,
     }),
   });
   printJobToRedis: any;
@@ -203,7 +224,7 @@ class WebSocket {
 
     // Create regular NetworkInterface by using apollo-client's API:
     const httpLink = new HttpLink({
-      uri: `${baseUrl}/graphql`, // Your GraphQL endpoint
+      uri: `${baseUrl}/graphql/`, // Your GraphQL endpoint
       fetch,
     });
 
@@ -264,7 +285,6 @@ class WebSocket {
         return u.json();
       })
       .then((res) => {
-        console.log("TCL: connect -> res", res);
         const baseUrl = res.baseUrl;
         if (token) {
           this.subscribe(token, baseUrl);
@@ -283,11 +303,13 @@ class WebSocket {
 
   loginThenSubscribe(baseUrl: string) {
     this.initClient(null, baseUrl);
+    // address.mac(function(err, addr) {
     this.apolloClient
       .mutate({
         mutation: SIGN_IN_TERMINAL_MUTATION,
         variables: {
           deviceMac,
+          printTerminalId: envPrintTerminalId,
           apiKey: apiKey,
         },
       })
@@ -297,16 +319,13 @@ class WebSocket {
         //@ts-ignore
         this.subscribe(token);
       })
-      .catch((error) => {
-        console.log("TCL: loginThenSubscribe -> error", error);
-      });
+      .catch((error) => {});
+    // });
   }
 
   subscribe(token: string, baseUrl: string) {
     this.initClient(token, baseUrl);
     const tokenDecoded = jwtDecode(token);
-    console.log("subscribe -> tokenDecoded", tokenDecoded);
-
     const that = this;
     this.apolloClient
       .subscribe<PrintJobData, PrintJobVariables>({
@@ -396,6 +415,7 @@ class WebSocket {
   }
 
   updateScanJob(scanJobId, status, cardRfid) {
+    console.log("updateScanJob -> this.apolloClient", this.apolloClient);
     this.apolloClient
       .mutate({
         mutation: UPDATE_SCAN_JOB_MUTATION,

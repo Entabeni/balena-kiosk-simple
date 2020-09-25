@@ -32,6 +32,7 @@ function main() {
                             if (resp7) {
                               mq.createQueue("scanJobs", (resp8) => {
                                 if (resp8) {
+                                  console.log("main -> resp8", resp8);
                                   ws.connect();
                                   cardScanObj.checkPrintJobs();
                                   receiptPrintObj.checkPrintJobs();
