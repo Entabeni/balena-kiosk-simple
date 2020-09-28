@@ -120,19 +120,18 @@ fi
 
 # Set whether to run Chromium in config mode or not
 # This sets the cursor to show by default
-if [ ! -z ${KIOSK+x} ] && [ "$KIOSK" -eq "1" ]
+
+if [ ! -z ${CLIENT_FACING+x} ] && [ "$CLIENT_FACING" -eq "0" ]
   then
-    echo "Enabling kiosk mode"
-    export CHROME_LAUNCH_URL="--app=https://$LAUNCH_URL/?printTerminalID=$PRINT_TERMINAL_ID" 
+    echo "Enablingb kiosk mode"
+    echo $BALENA_SUPERVISOR_API_KEY
+    export CHROME_LAUNCH_URL="--app=https://$LAUNCH_URL/customer-facing-preauth/$PRINT_TERMINAL_ID/?hs=$BALENA_SUPERVISOR_API_KEY" 
+    echo $CHROME_LAUNCH_URL
+    # export CHROME_LAUNCH_URL="--app=https://$LAUNCH_URL/?printTerminalID=$PRINT_TERMINAL_ID" 
   else
-    export CHROME_LAUNCH_URL="https://$LAUNCH_URL/?printTerminalID=$PRINT_TERMINAL_ID"
+    export CHROME_LAUNCH_URL="--app=https://$LAUNCH_URL/?printTerminalID=$PRINT_TERMINAL_ID" 
 fi
-# This sets the cursor to show by default
-if [ ! -z ${KIOSK+x} ] && [ "$KIOSK" -eq "1" ] && [ "$CLIENT_FACING" -eq "0" ]  
-  then
-    echo "Enabling kiosk mode"
-    export CHROME_LAUNCH_URL="--app=https://$LAUNCH_URL/?customerFacingPrintTerminal=$PRINT_TERMINAL_ID&hs=$BALENA_SUPERVISOR_API_KEY" 
-fi
+
 
  #Set whether to show a cursor or not
 if [[ ! -z $SHOW_CURSOR ]] && [[ "$SHOW_CURSOR" -eq "1" ]]
@@ -151,7 +150,6 @@ if [ ! -z ${DEBUG+x} ] && [ "$DEBUG" -eq "1" ]
   else
     export OUTPUT='>/dev/null 2>&1'
 fi
-
 echo "xset s off -dpms" >> /home/chromium/xstart.sh
 echo "chromium-browser $CHROME_LAUNCH_URL $FLAGS  --window-size=$WINDOW_SIZE --window-position=$WINDOW_POSITION $OUTPUT" >> /home/chromium/xstart.sh
 
