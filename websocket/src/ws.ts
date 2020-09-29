@@ -41,6 +41,8 @@ const websocketUrl = `wss://${backendUrl}/cable/`;
 
 const envPrintTerminalId =
   process.env.PRINT_TERMINAL_ID || "c9fff07d-5470-44a1-ad96-2c05872078ea";
+const password =
+  process.env.TERMINAL_PASSWORD || "973595bf280d548eb8455d4f2d131561";
 console.log("envPrintTerminalId", envPrintTerminalId);
 const frontendUrl =
   `https://${backendUrl}/?frontEndUrl=https://${process.env.FRONTEND_URL}/` ||
@@ -120,13 +122,13 @@ export const GET_SALE_DETAILS_BY_ID = gql`
 const SIGN_IN_TERMINAL_MUTATION = gql`
   mutation SignInTerminal(
     $deviceMac: String!
-    $apiKey: String!
+    $password: String!
     $printTerminalId: String!
   ) {
     pos {
       signInTerminal(
         deviceMac: $deviceMac
-        apiKey: $apiKey
+        password: $password
         printTerminalId: $printTerminalId
       ) {
         success
@@ -286,10 +288,11 @@ class WebSocket {
       })
       .then((res) => {
         const baseUrl = res.baseUrl;
+        console.log("connect -> baseUrl", baseUrl);
         if (token) {
-          this.subscribe(token, baseUrl);
+          this.subscribe(token, `${baseUrl}/`);
         } else {
-          this.loginThenSubscribe(baseUrl);
+          this.loginThenSubscribe(`${baseUrl}/`);
         }
       })
       .catch(function(error) {
@@ -310,7 +313,7 @@ class WebSocket {
         variables: {
           deviceMac,
           printTerminalId: envPrintTerminalId,
-          apiKey: apiKey,
+          password,
         },
       })
       .then(({ data }) => {
@@ -415,7 +418,6 @@ class WebSocket {
   }
 
   updateScanJob(scanJobId, status, cardRfid) {
-    console.log("updateScanJob -> this.apolloClient", this.apolloClient);
     this.apolloClient
       .mutate({
         mutation: UPDATE_SCAN_JOB_MUTATION,
@@ -432,8 +434,6 @@ class WebSocket {
   }
 
   updateAccessRecord(accessRecordId, cardRfid) {
-    console.log("TCL: updateAccessRecord -> cardRfid", cardRfid);
-    console.log("TCL: updateAccessRecord -> accessRecordId", accessRecordId);
     return this.apolloClient
       .mutate({
         mutation: UPDATE_ACCESS_RECORD_MUTATION,
