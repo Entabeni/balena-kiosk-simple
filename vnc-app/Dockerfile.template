@@ -1,0 +1,16 @@
+FROM balenalib/%%BALENA_MACHINE_NAME%%-debian:stretch-run
+
+RUN install_packages x11vnc \
+    x11-utils \
+    xvfb \
+    wmctrl \
+    supervisor \
+    gnome-calculator
+
+WORKDIR /usr/src/app
+
+COPY . .
+
+ADD supervisor /etc/supervisor
+
+CMD ["bash", "start.sh"]
