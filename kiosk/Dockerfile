@@ -3,12 +3,12 @@ FROM balenablocks/browser:fincm3
 WORKDIR /usr/src/app
 
 COPY start.sh .
-ENV CLIENT_FACING '0'
+ENV CLIENT_FACING '1'
 ENV SHOW_CURSOR '1'
 ENV DEBUG '1'
 ENV KIOSK '1'
 ENV PRINT_TERMINAL_ID 'f8ea744a-d959-4ae4-b3f8-4711cced2020'
-ENV LAUNCH_URL 'www.test.com'
+ENV LAUNCH_URL 'pos-demo.entabeni.tech'
 ENV DISPLAY :1
 ENV HOST '97293c3'
 ENV TERMINAL_PASSWORD '2ad58f3bda6a71357c5ca4c80bcac37b'

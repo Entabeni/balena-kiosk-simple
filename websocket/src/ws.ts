@@ -1,69 +1,48 @@
 //@ts-ignore
-import fetch from "node-fetch";
+global.fetch = require("node-fetch");
 
-//@ts-ignore
-import ActionCable from "action-cable";
+import ActionCable from "action-cable-node";
 //@ts-ignore
 import fetch from "node-fetch";
 //@ts-ignore
-// import { gql, HttpLink, InMemoryCache } from "apollo-boost";
+import { gql, HttpLink, InMemoryCache } from "apollo-boost";
 //@ts-ignore
-// import ApolloClient from "apollo-client";
+import ApolloClient from "apollo-client";
 //@ts-ignore
 import { ApolloLink, from, split } from "apollo-link";
 //@ts-ignore
 import { onError } from "apollo-link-error";
 //@ts-ignore
-// import { createHttpLink } from "apollo-link-http";
-//@ts-ignore
-import getMAC, { isMAC } from "getmac";
+import { createHttpLink } from "apollo-link-http";
 
 import { getMainDefinition } from "apollo-utilities";
+//@ts-ignore
 import ActionCableLink from "graphql-ruby-client/subscriptions/ActionCableLink";
 import jwtDecode from "jwt-decode";
-import { URL } from "url";
 import { LocalStorage } from "node-localstorage";
 import ws from "ws";
-//@ts-ignore
 import MessageQueue from "./messageQueue";
 import StateMachine from "./stateMachine";
-
-const gql = require("graphql-tag");
-const ApolloClient = require("apollo-client").ApolloClient;
-const fetch = require("node-fetch");
-const createHttpLink = require("apollo-link-http").createHttpLink;
-const InMemoryCache = require("apollo-cache-inmemory").InMemoryCache;
 const isProd = process.env.IS_PRODUCTION === "1";
-const deviceMac = getMAC();
-console.log("deviceMac", deviceMac);
-const isPreProd = process.env.IS_PRODUCTION === "2";
-let backendUrl;
-if (isProd) {
-  backendUrl = "entabeni-api.herokuapp.com";
-} else if (isPreProd) {
-  backendUrl = "pre-production-api.herokuapp.com";
-} else {
-  backendUrl = "entabeni-api-staging.herokuapp.com";
-}
-const websocketUrl = new URL(`wss://${backendUrl}/cable/`);
-
-const envPrintTerminalId =
-  process.env.PRINT_TERMINAL_ID || "c9fff07d-5470-44a1-ad96-2c05872078ea";
+const backendUrl = isProd
+  ? "entabeni-api.herokuapp.com"
+  : "entabeni-api-staging.herokuapp.com";
+const websocketUrl = `wss://${backendUrl}/cable`;
+const deviceMac = process.env.DEVICE_MAC || "CA:2D:E9:8D:17:67";
 const password =
   process.env.TERMINAL_PASSWORD || "973595bf280d548eb8455d4f2d131561";
-console.log("envPrintTerminalId", envPrintTerminalId);
+const envPrintTerminalId =
+  process.env.PRINT_TERMINAL_ID || "c9fff07d-5470-44a1-ad96-2c05872078ea";
 const frontendUrl =
-  new URL(
-    `https://${backendUrl}/?frontEndUrl=https://${process.env.FRONTEND_URL}/`
-  ) ||
-  new URL(
-    "https://entabeni-api-staging.herokuapp.com/?frontEndUrl=https://pos-demo.entabeni.tech/"
-  );
+  `https://${backendUrl}/?frontEndUrl=https://${process.env.FRONTEND_URL}/` ||
+  "https://entabeni-api-staging.herokuapp.com/?frontEndUrl=https://pos-demo.entabeni.tech/";
+
 console.log("frontendUrl", frontendUrl);
 const apiKey = isProd
   ? "335654d2600faead9936251ea066f4a9"
   : "b04f110e-9ae0-4018-8954-4b59de0663e9";
 const localStorage = new LocalStorage("./terminal");
+console.log("localStorage", localStorage);
 
 interface PrintJobData {
   newPrintJob: {
@@ -134,14 +113,14 @@ export const GET_SALE_DETAILS_BY_ID = gql`
 const SIGN_IN_TERMINAL_MUTATION = gql`
   mutation SignInTerminal(
     $deviceMac: String!
-    $password: String!
     $printTerminalId: String!
+    $password: String!
   ) {
     pos {
       signInTerminal(
         deviceMac: $deviceMac
-        password: $password
         printTerminalId: $printTerminalId
+        password: $password
       ) {
         success
         authToken
@@ -182,6 +161,12 @@ const UPDATE_ACCESS_RECORD_MUTATION = gql`
 class WebSocket {
   state: StateMachine;
   mq: any;
+  apolloClient = new ApolloClient({
+    cache: new InMemoryCache(),
+    link: createHttpLink({
+      uri: `/graphql`, // Your GraphQL endpoint
+    }),
+  });
   printJobToRedis: any;
   scanJobToRedis: any;
   constructor(mq: MessageQueue, state: StateMachine) {
@@ -192,6 +177,7 @@ class WebSocket {
   }
 
   initClient(token: null | string, baseUrl: string) {
+    console.log("WebSocket -> initClient -> token", token);
     const authLink = new ApolloLink((operation, forward) => {
       operation.setContext(() => ({
         headers: {
@@ -202,14 +188,12 @@ class WebSocket {
     });
 
     // Create regular NetworkInterface by using apollo-client's API:
-    console.log("WebSocket -> initClient -> baseUrl", baseUrl);
-    const httpLink = new createHttpLink({
-      uri: new URL(`${baseUrl}/graphql`), // Your GraphQL endpoint
+    const httpLink = new HttpLink({
+      uri: `${baseUrl}/graphql`, // Your GraphQL endpoint
       fetch,
     });
 
     // Create WebSocket client
-    console.log("WebSocket -> initClient -> websocketUrl", websocketUrl);
     const cable = websocketUrl
       ? ActionCable.createConsumer(websocketUrl, ws)
       : null;
@@ -247,8 +231,6 @@ class WebSocket {
     });
 
     // Finally, create your ApolloClient instance with the modified network interface
-    //@ts-ignore
-    //@ts-ignore
     this.apolloClient = new ApolloClient({
       link: from([errorLink, authLink, link]),
       cache,
@@ -268,11 +250,12 @@ class WebSocket {
         return u.json();
       })
       .then((res) => {
+        console.log("TCL: connect -> res", res);
         const baseUrl = res.baseUrl;
         if (token) {
-          this.subscribe(token, `${baseUrl}`);
+          this.subscribe(token, baseUrl);
         } else {
-          this.loginThenSubscribe(`${baseUrl}`);
+          this.loginThenSubscribe(baseUrl);
         }
       })
       .catch(function(error) {
@@ -286,8 +269,6 @@ class WebSocket {
 
   loginThenSubscribe(baseUrl: string) {
     this.initClient(null, baseUrl);
-    // address.mac(function(err, addr) {
-    //@ts-ignore
     this.apolloClient
       .mutate({
         mutation: SIGN_IN_TERMINAL_MUTATION,
@@ -303,15 +284,17 @@ class WebSocket {
         //@ts-ignore
         this.subscribe(token);
       })
-      .catch((error) => {});
-    // });
+      .catch((error) => {
+        console.log("TCL: loginThenSubscribe -> error", error);
+      });
   }
 
   subscribe(token: string, baseUrl: string) {
     this.initClient(token, baseUrl);
     const tokenDecoded = jwtDecode(token);
+    console.log("subscribe -> tokenDecoded", tokenDecoded);
+
     const that = this;
-    //@ts-ignore
     this.apolloClient
       .subscribe<PrintJobData, PrintJobVariables>({
         query: PRINT_JOBS_SUBSCRIPTION,
@@ -327,26 +310,8 @@ class WebSocket {
         next(res) {
           console.log("TCL: next -> res", res);
           const printJob = res.data.newPrintJob;
-          if (
-            (printJob.status === "created" ||
-              printJob.resolution === "retry") &&
-            printJob.resolution !== "cancel"
-          ) {
-            if (
-              printJob.status === "created" &&
-              printJob.resolution === "retry"
-            ) {
-              //@ts-ignore
-              that.state.idle();
-            }
+          if (printJob.status === "created") {
             that.pushPrintJobToQueue(printJob);
-          }
-          if (
-            printJob.resolution === "cancel" &&
-            printJob.status !== "complete" &&
-            printJob.status !== "processing"
-          ) {
-            that.clearQueue(printJob);
           }
         },
         error(err: string) {
@@ -354,7 +319,6 @@ class WebSocket {
         },
       });
 
-    //@ts-ignore
     this.apolloClient
       .subscribe<ScanJobData, ScanJobVariables>({
         query: SCAN_JOBS_SUBSCRIPTION,
@@ -381,10 +345,6 @@ class WebSocket {
   }
 
   updateScanJob(scanJobId, status, cardRfid) {
-    console.log("updateScanJob -> cardRfid", cardRfid);
-    console.log("updateScanJob -> status", status);
-    console.log("updateScanJob -> scanJobId", scanJobId);
-    //@ts-ignore
     this.apolloClient
       .mutate({
         mutation: UPDATE_SCAN_JOB_MUTATION,
@@ -400,7 +360,22 @@ class WebSocket {
       });
   }
 
-  updateAccessRecord(accessRecordId, cardRfid) {}
+  updateAccessRecord(accessRecordId, cardRfid) {
+    console.log("TCL: updateAccessRecord -> cardRfid", cardRfid);
+    console.log("TCL: updateAccessRecord -> accessRecordId", accessRecordId);
+    return this.apolloClient
+      .mutate({
+        mutation: UPDATE_ACCESS_RECORD_MUTATION,
+        variables: {
+          accessRecordId,
+          cardRfid,
+        },
+      })
+      .then((res) => {})
+      .catch((e) => {
+        console.log("An error occured with updating the access record", e);
+      });
+  }
   clearQueue(printJob) {
     const redisId = this.printJobToRedis[printJob.id];
     if (

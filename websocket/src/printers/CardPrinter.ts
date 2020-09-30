@@ -79,17 +79,10 @@ class CardPrinter extends NodePrinter {
    * And send success update
    */
   printingStopped(jobId, messageId, successfulScan, holdUi = false) {
-    if (successfulScan) {
-      // this.state.idle();
-      this.ws.updatePrintJob(messageId, "complete", "passMedia");
-    } else {
-      this.ws.updatePrintJob(messageId, "error", "passMedia");
-    }
-
     this.currentJobId = null;
     this.state.idle();
-    // this.state.holdForScanJob();
   }
+  s;
 
   /**
    * Listen for when the printing starts
@@ -109,7 +102,6 @@ class CardPrinter extends NodePrinter {
       this.numTimesCheckedPrinted === 27
     ) {
       this.numTimesCheckedPrinted = 0;
-      this.ws.updatePrintJob(message.id, "error", "passMedia");
       this.finishPrintJob(printJobData.id);
       return;
     }
@@ -156,7 +148,6 @@ class CardPrinter extends NodePrinter {
 
     // Update print job status to processing
 
-    this.ws.updatePrintJob(message.id, "processing", "passMedia");
     const { pdfUrl } = JSON.parse(message.data);
     if (!pdfUrl) {
       this.finishPrintJob(printJobData.id);

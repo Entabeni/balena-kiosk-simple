@@ -52,8 +52,3 @@ services:
       io.balena.features.dbus: "1"
       io.balena.features.supervisor-api: "1"
       io.balena.features.balena-api: "1"
-  vnc-app:
-    restart: always
-    build: ./vnc-app
-    ports:
-      - "8080:5900"

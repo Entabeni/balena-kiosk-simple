@@ -106,16 +106,8 @@ var CardPrinter = /** @class */ (function (_super) {
      */
     CardPrinter.prototype.printingStopped = function (jobId, messageId, successfulScan, holdUi) {
         if (holdUi === void 0) { holdUi = false; }
-        if (successfulScan) {
-            // this.state.idle();
-            this.ws.updatePrintJob(messageId, "complete", "passMedia");
-        }
-        else {
-            this.ws.updatePrintJob(messageId, "error", "passMedia");
-        }
         this.currentJobId = null;
         this.state.idle();
-        // this.state.holdForScanJob();
     };
     /**
      * Listen for when the printing starts
@@ -133,7 +125,6 @@ var CardPrinter = /** @class */ (function (_super) {
             !job) &&
             this.numTimesCheckedPrinted === 27) {
             this.numTimesCheckedPrinted = 0;
-            this.ws.updatePrintJob(message.id, "error", "passMedia");
             this.finishPrintJob(printJobData.id);
             return;
         }
@@ -174,7 +165,6 @@ var CardPrinter = /** @class */ (function (_super) {
         var _this = this;
         var message = JSON.parse(printJobData.message);
         // Update print job status to processing
-        this.ws.updatePrintJob(message.id, "processing", "passMedia");
         var pdfUrl = JSON.parse(message.data).pdfUrl;
         if (!pdfUrl) {
             this.finishPrintJob(printJobData.id);

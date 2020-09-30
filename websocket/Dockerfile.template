@@ -55,10 +55,11 @@ ENV UDEV=on
 COPY udev/symlink.rules /etc/udev/rules.d/symlink.rules
 COPY start.sh ./
 COPY kevin.pdf kevin.pdf
-# ENV API_KEY 335654d2600faead9936251ea066f4a9
-ENV DEVICE_MAC b8:27:eb:3c:61:4b
-ENV FRONTEND_URL https://entabeni-api-staging.herokuapp.com/?frontEndUrl=https://pos-demo.entabeni.tech/
-ENV WEBSOCKET_URL wss://entabeni-api-staging.herokuapp.com/cable
+ENV FRONTEND_URL 'pos-demo.entabeni.tech'
+ENV WEBSOCKET_URL 'wss://entabeni-api-staging.herokuapp.com/cable'
+ENV IS_PRODUCTION '0'
+ENV PRINT_TERMINAL_ID 'f8ea744a-d959-4ae4-b3f8-4711cced2020'
+ENV TERMINAL_PASSWORD '973595bf280d548eb8455d4f2d131561'
 
 
 # Make udev script executable
