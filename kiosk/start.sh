@@ -125,7 +125,7 @@ if [ ! -z ${CLIENT_FACING+x} ] && [ "$CLIENT_FACING" -eq "0" ]
   then
     echo "Enablingb kiosk mode"
     echo $BALENA_SUPERVISOR_API_KEY
-    export CHROME_LAUNCH_URL="--app=https://$LAUNCH_URL/customer-facing-preauth/$PRINT_TERMINAL_ID/?hs=$BALENA_SUPERVISOR_API_KEY" 
+    export CHROME_LAUNCH_URL="--app=https://$LAUNCH_URL/customer-facing-preauth/$PRINT_TERMINAL_ID/?hs=$TERMINAL_PASSWORD" 
     echo $CHROME_LAUNCH_URL
     # export CHROME_LAUNCH_URL="--app=https://$LAUNCH_URL/?printTerminalID=$PRINT_TERMINAL_ID" 
   else
