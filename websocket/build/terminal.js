@@ -3,6 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+var tokenService_1 = __importDefault(require("./tokenService"));
 var ws_1 = __importDefault(require("./ws"));
 var stateMachine_1 = __importDefault(require("./stateMachine"));
 var messageQueue_1 = __importDefault(require("./messageQueue"));
@@ -15,6 +16,7 @@ function main() {
     var state = new stateMachine_1.default();
     var mq = new messageQueue_1.default();
     var ws = new ws_1.default(mq, state);
+    var ts = new tokenService_1.default();
     var receiptPrintObj = new ReceiptPrinter_1.default(mq, ws, "receiptPrintJobs", state);
     var cardScanObj = new CardScanner_1.default(mq, ws, "scanJobs", state);
     var cardPrintPObj = new CardPrinter_1.default(mq, ws, "cardPrintJobs", state);
@@ -35,12 +37,13 @@ function main() {
                                                         if (resp7) {
                                                             mq.createQueue("scanJobs", function (resp8) {
                                                                 if (resp8) {
-                                                                    console.log("main -> resp8", resp8);
-                                                                    ws.connect();
-                                                                    cardScanObj.checkPrintJobs();
-                                                                    receiptPrintObj.checkPrintJobs();
-                                                                    cardPrintPObj.checkPrintJobs();
-                                                                    lablePrintObj.checkPrintJobs();
+                                                                    ts.connect(function (token, baseUrl) {
+                                                                        ws.subscribe(token, baseUrl);
+                                                                        cardScanObj.checkPrintJobs();
+                                                                        receiptPrintObj.checkPrintJobs();
+                                                                        cardPrintPObj.checkPrintJobs();
+                                                                        lablePrintObj.checkPrintJobs();
+                                                                    });
                                                                 }
                                                             });
                                                         }

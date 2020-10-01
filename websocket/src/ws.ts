@@ -19,7 +19,6 @@ import { getMainDefinition } from "apollo-utilities";
 //@ts-ignore
 import ActionCableLink from "graphql-ruby-client/subscriptions/ActionCableLink";
 import jwtDecode from "jwt-decode";
-import { LocalStorage } from "node-localstorage";
 import ws from "ws";
 import MessageQueue from "./messageQueue";
 import StateMachine from "./stateMachine";
@@ -28,21 +27,6 @@ const backendUrl = isProd
   ? "entabeni-api.herokuapp.com"
   : "entabeni-api-staging.herokuapp.com";
 const websocketUrl = `wss://${backendUrl}/cable`;
-const deviceMac = process.env.DEVICE_MAC || "CA:2D:E9:8D:17:67";
-const password =
-  process.env.TERMINAL_PASSWORD || "973595bf280d548eb8455d4f2d131561";
-const envPrintTerminalId =
-  process.env.PRINT_TERMINAL_ID || "c9fff07d-5470-44a1-ad96-2c05872078ea";
-const frontendUrl =
-  `https://${backendUrl}/?frontEndUrl=https://${process.env.FRONTEND_URL}/` ||
-  "https://entabeni-api-staging.herokuapp.com/?frontEndUrl=https://pos-demo.entabeni.tech/";
-
-console.log("frontendUrl", frontendUrl);
-const apiKey = isProd
-  ? "335654d2600faead9936251ea066f4a9"
-  : "b04f110e-9ae0-4018-8954-4b59de0663e9";
-const localStorage = new LocalStorage("./terminal");
-console.log("localStorage", localStorage);
 
 interface PrintJobData {
   newPrintJob: {
@@ -110,25 +94,6 @@ export const GET_SALE_DETAILS_BY_ID = gql`
   }
 `;
 
-const SIGN_IN_TERMINAL_MUTATION = gql`
-  mutation SignInTerminal(
-    $deviceMac: String!
-    $printTerminalId: String!
-    $password: String!
-  ) {
-    pos {
-      signInTerminal(
-        deviceMac: $deviceMac
-        printTerminalId: $printTerminalId
-        password: $password
-      ) {
-        success
-        authToken
-      }
-    }
-  }
-`;
-
 const UPDATE_SCAN_JOB_MUTATION = gql`
   mutation UpdateScanJobMutation(
     $scanJobId: String!
@@ -177,7 +142,6 @@ class WebSocket {
   }
 
   initClient(token: null | string, baseUrl: string) {
-    console.log("WebSocket -> initClient -> token", token);
     const authLink = new ApolloLink((operation, forward) => {
       operation.setContext(() => ({
         headers: {
@@ -235,58 +199,6 @@ class WebSocket {
       link: from([errorLink, authLink, link]),
       cache,
     });
-  }
-
-  connect() {
-    const token = localStorage.getItem("jwt");
-    fetch(frontendUrl, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        "X-Key-Inflection": "camel",
-      },
-    })
-      .then(function(u) {
-        return u.json();
-      })
-      .then((res) => {
-        console.log("TCL: connect -> res", res);
-        const baseUrl = res.baseUrl;
-        if (token) {
-          this.subscribe(token, baseUrl);
-        } else {
-          this.loginThenSubscribe(baseUrl);
-        }
-      })
-      .catch(function(error) {
-        console.log("error connecting to get baseUrl");
-        setTimeout(() => {
-          //@ts-ignore
-          this.connect();
-        }, 15000);
-      });
-  }
-
-  loginThenSubscribe(baseUrl: string) {
-    this.initClient(null, baseUrl);
-    this.apolloClient
-      .mutate({
-        mutation: SIGN_IN_TERMINAL_MUTATION,
-        variables: {
-          deviceMac,
-          printTerminalId: envPrintTerminalId,
-          password,
-        },
-      })
-      .then(({ data }) => {
-        const token = data.pos.signInTerminal.authToken;
-        localStorage.setItem("jwt", token);
-        //@ts-ignore
-        this.subscribe(token);
-      })
-      .catch((error) => {
-        console.log("TCL: loginThenSubscribe -> error", error);
-      });
   }
 
   subscribe(token: string, baseUrl: string) {

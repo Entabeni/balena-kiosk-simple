@@ -27,30 +27,17 @@ var apollo_utilities_1 = require("apollo-utilities");
 //@ts-ignore
 var ActionCableLink_1 = __importDefault(require("graphql-ruby-client/subscriptions/ActionCableLink"));
 var jwt_decode_1 = __importDefault(require("jwt-decode"));
-var node_localstorage_1 = require("node-localstorage");
 var ws_1 = __importDefault(require("ws"));
 var isProd = process.env.IS_PRODUCTION === "1";
 var backendUrl = isProd
     ? "entabeni-api.herokuapp.com"
     : "entabeni-api-staging.herokuapp.com";
 var websocketUrl = "wss://" + backendUrl + "/cable";
-var deviceMac = process.env.DEVICE_MAC || "CA:2D:E9:8D:17:67";
-var password = process.env.TERMINAL_PASSWORD || "973595bf280d548eb8455d4f2d131561";
-var envPrintTerminalId = process.env.PRINT_TERMINAL_ID || "c9fff07d-5470-44a1-ad96-2c05872078ea";
-var frontendUrl = "https://" + backendUrl + "/?frontEndUrl=https://" + process.env.FRONTEND_URL + "/" ||
-    "https://entabeni-api-staging.herokuapp.com/?frontEndUrl=https://pos-demo.entabeni.tech/";
-console.log("frontendUrl", frontendUrl);
-var apiKey = isProd
-    ? "335654d2600faead9936251ea066f4a9"
-    : "b04f110e-9ae0-4018-8954-4b59de0663e9";
-var localStorage = new node_localstorage_1.LocalStorage("./terminal");
-console.log("localStorage", localStorage);
 var PRINT_JOBS_SUBSCRIPTION = apollo_boost_1.gql(templateObject_1 || (templateObject_1 = __makeTemplateObject(["\n  subscription onNewPrintJob($printTerminalId: String!) {\n    newPrintJob(printTerminalId: $printTerminalId) {\n      id\n      printData\n      printJobType\n      resolution\n      status\n      accessRecordId\n      printTerminalId\n      saleId\n    }\n  }\n"], ["\n  subscription onNewPrintJob($printTerminalId: String!) {\n    newPrintJob(printTerminalId: $printTerminalId) {\n      id\n      printData\n      printJobType\n      resolution\n      status\n      accessRecordId\n      printTerminalId\n      saleId\n    }\n  }\n"])));
 var SCAN_JOBS_SUBSCRIPTION = apollo_boost_1.gql(templateObject_2 || (templateObject_2 = __makeTemplateObject(["\n  subscription onNewScanJob($printTerminalId: String!) {\n    newScanJob(printTerminalId: $printTerminalId) {\n      id\n      status\n      accessRecordId\n    }\n  }\n"], ["\n  subscription onNewScanJob($printTerminalId: String!) {\n    newScanJob(printTerminalId: $printTerminalId) {\n      id\n      status\n      accessRecordId\n    }\n  }\n"])));
 exports.GET_SALE_DETAILS_BY_ID = apollo_boost_1.gql(templateObject_3 || (templateObject_3 = __makeTemplateObject(["\n  query sale($id: String!) {\n    pos {\n      sale(id: $id) {\n        saleLineItems {\n          guest {\n            id\n            fullName\n            email\n          }\n        }\n      }\n    }\n  }\n"], ["\n  query sale($id: String!) {\n    pos {\n      sale(id: $id) {\n        saleLineItems {\n          guest {\n            id\n            fullName\n            email\n          }\n        }\n      }\n    }\n  }\n"])));
-var SIGN_IN_TERMINAL_MUTATION = apollo_boost_1.gql(templateObject_4 || (templateObject_4 = __makeTemplateObject(["\n  mutation SignInTerminal(\n    $deviceMac: String!\n    $printTerminalId: String!\n    $password: String!\n  ) {\n    pos {\n      signInTerminal(\n        deviceMac: $deviceMac\n        printTerminalId: $printTerminalId\n        password: $password\n      ) {\n        success\n        authToken\n      }\n    }\n  }\n"], ["\n  mutation SignInTerminal(\n    $deviceMac: String!\n    $printTerminalId: String!\n    $password: String!\n  ) {\n    pos {\n      signInTerminal(\n        deviceMac: $deviceMac\n        printTerminalId: $printTerminalId\n        password: $password\n      ) {\n        success\n        authToken\n      }\n    }\n  }\n"])));
-var UPDATE_SCAN_JOB_MUTATION = apollo_boost_1.gql(templateObject_5 || (templateObject_5 = __makeTemplateObject(["\n  mutation UpdateScanJobMutation(\n    $scanJobId: String!\n    $status: String!\n    $cardRfid: String\n  ) {\n    pos {\n      updateScanJob(id: $scanJobId, status: $status, cardRfid: $cardRfid) {\n        id\n        status\n        accessRecordId\n      }\n    }\n  }\n"], ["\n  mutation UpdateScanJobMutation(\n    $scanJobId: String!\n    $status: String!\n    $cardRfid: String\n  ) {\n    pos {\n      updateScanJob(id: $scanJobId, status: $status, cardRfid: $cardRfid) {\n        id\n        status\n        accessRecordId\n      }\n    }\n  }\n"])));
-var UPDATE_ACCESS_RECORD_MUTATION = apollo_boost_1.gql(templateObject_6 || (templateObject_6 = __makeTemplateObject(["\n  mutation UpdateAccessRecordMutation(\n    $accessRecordId: String!\n    $cardRfid: String!\n  ) {\n    pos {\n      updateAccessRecord(id: $accessRecordId, cardRfid: $cardRfid) {\n        id\n      }\n    }\n  }\n"], ["\n  mutation UpdateAccessRecordMutation(\n    $accessRecordId: String!\n    $cardRfid: String!\n  ) {\n    pos {\n      updateAccessRecord(id: $accessRecordId, cardRfid: $cardRfid) {\n        id\n      }\n    }\n  }\n"])));
+var UPDATE_SCAN_JOB_MUTATION = apollo_boost_1.gql(templateObject_4 || (templateObject_4 = __makeTemplateObject(["\n  mutation UpdateScanJobMutation(\n    $scanJobId: String!\n    $status: String!\n    $cardRfid: String\n  ) {\n    pos {\n      updateScanJob(id: $scanJobId, status: $status, cardRfid: $cardRfid) {\n        id\n        status\n        accessRecordId\n      }\n    }\n  }\n"], ["\n  mutation UpdateScanJobMutation(\n    $scanJobId: String!\n    $status: String!\n    $cardRfid: String\n  ) {\n    pos {\n      updateScanJob(id: $scanJobId, status: $status, cardRfid: $cardRfid) {\n        id\n        status\n        accessRecordId\n      }\n    }\n  }\n"])));
+var UPDATE_ACCESS_RECORD_MUTATION = apollo_boost_1.gql(templateObject_5 || (templateObject_5 = __makeTemplateObject(["\n  mutation UpdateAccessRecordMutation(\n    $accessRecordId: String!\n    $cardRfid: String!\n  ) {\n    pos {\n      updateAccessRecord(id: $accessRecordId, cardRfid: $cardRfid) {\n        id\n      }\n    }\n  }\n"], ["\n  mutation UpdateAccessRecordMutation(\n    $accessRecordId: String!\n    $cardRfid: String!\n  ) {\n    pos {\n      updateAccessRecord(id: $accessRecordId, cardRfid: $cardRfid) {\n        id\n      }\n    }\n  }\n"])));
 var WebSocket = /** @class */ (function () {
     function WebSocket(mq, state) {
         this.apolloClient = new apollo_client_1.default({
@@ -65,7 +52,6 @@ var WebSocket = /** @class */ (function () {
         this.scanJobToRedis = [];
     }
     WebSocket.prototype.initClient = function (token, baseUrl) {
-        console.log("WebSocket -> initClient -> token", token);
         var authLink = new apollo_link_1.ApolloLink(function (operation, forward) {
             operation.setContext(function () { return ({
                 headers: {
@@ -111,61 +97,6 @@ var WebSocket = /** @class */ (function () {
         this.apolloClient = new apollo_client_1.default({
             link: apollo_link_1.from([errorLink, authLink, link]),
             cache: cache,
-        });
-    };
-    WebSocket.prototype.connect = function () {
-        var _this = this;
-        var token = localStorage.getItem("jwt");
-        node_fetch_1.default(frontendUrl, {
-            method: "GET",
-            headers: {
-                "Content-Type": "application/json",
-                "X-Key-Inflection": "camel",
-            },
-        })
-            .then(function (u) {
-            return u.json();
-        })
-            .then(function (res) {
-            console.log("TCL: connect -> res", res);
-            var baseUrl = res.baseUrl;
-            if (token) {
-                _this.subscribe(token, baseUrl);
-            }
-            else {
-                _this.loginThenSubscribe(baseUrl);
-            }
-        })
-            .catch(function (error) {
-            var _this = this;
-            console.log("error connecting to get baseUrl");
-            setTimeout(function () {
-                //@ts-ignore
-                _this.connect();
-            }, 15000);
-        });
-    };
-    WebSocket.prototype.loginThenSubscribe = function (baseUrl) {
-        var _this = this;
-        this.initClient(null, baseUrl);
-        this.apolloClient
-            .mutate({
-            mutation: SIGN_IN_TERMINAL_MUTATION,
-            variables: {
-                deviceMac: deviceMac,
-                printTerminalId: envPrintTerminalId,
-                password: password,
-            },
-        })
-            .then(function (_a) {
-            var data = _a.data;
-            var token = data.pos.signInTerminal.authToken;
-            localStorage.setItem("jwt", token);
-            //@ts-ignore
-            _this.subscribe(token);
-        })
-            .catch(function (error) {
-            console.log("TCL: loginThenSubscribe -> error", error);
         });
     };
     WebSocket.prototype.subscribe = function (token, baseUrl) {
@@ -315,4 +246,4 @@ var WebSocket = /** @class */ (function () {
     return WebSocket;
 }());
 exports.default = WebSocket;
-var templateObject_1, templateObject_2, templateObject_3, templateObject_4, templateObject_5, templateObject_6;
+var templateObject_1, templateObject_2, templateObject_3, templateObject_4, templateObject_5;

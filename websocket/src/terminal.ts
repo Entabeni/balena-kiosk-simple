@@ -1,3 +1,4 @@
+import TokenService from "./tokenService";
 import WebSocket from "./ws";
 import StateMachine from "./stateMachine";
 import MessageQueue from "./messageQueue";
@@ -11,6 +12,7 @@ function main() {
   const state = new StateMachine();
   const mq = new MessageQueue();
   const ws = new WebSocket(mq, state);
+  const ts = new TokenService();
   const receiptPrintObj = new ReceiptPrinter(mq, ws, "receiptPrintJobs", state);
   const cardScanObj = new CardScanner(mq, ws, "scanJobs", state);
   const cardPrintPObj = new CardPrinter(mq, ws, "cardPrintJobs", state);
@@ -32,12 +34,13 @@ function main() {
                             if (resp7) {
                               mq.createQueue("scanJobs", (resp8) => {
                                 if (resp8) {
-                                  console.log("main -> resp8", resp8);
-                                  ws.connect();
-                                  cardScanObj.checkPrintJobs();
-                                  receiptPrintObj.checkPrintJobs();
-                                  cardPrintPObj.checkPrintJobs();
-                                  lablePrintObj.checkPrintJobs();
+                                  ts.connect((token, baseUrl) => {
+                                    ws.subscribe(token, baseUrl);
+                                    cardScanObj.checkPrintJobs();
+                                    receiptPrintObj.checkPrintJobs();
+                                    cardPrintPObj.checkPrintJobs();
+                                    lablePrintObj.checkPrintJobs();
+                                  });
                                 }
                               });
                             }

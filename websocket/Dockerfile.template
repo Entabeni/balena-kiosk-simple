@@ -48,7 +48,6 @@ COPY --from=build /usr/src/app/node_modules /usr/src/app/node_modules
 COPY ./build ./build
 COPY ./logos ./logos
 
-RUN npm install pm2 -g --no-optional
 
 # Enable udev for detection of dynamically plugged devices
 ENV UDEV=on
@@ -64,6 +63,7 @@ ENV TERMINAL_PASSWORD '973595bf280d548eb8455d4f2d131561'
 
 # Make udev script executable
 # RUN chmod +x udev/copy.sh
+# RUN npm install pm2 -g --no-optional
 COPY package.json package.json
 
 CMD ["bash", "start.sh"]
