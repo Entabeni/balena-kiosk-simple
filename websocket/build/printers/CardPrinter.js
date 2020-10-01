@@ -39,7 +39,6 @@ var uuid_1 = require("uuid");
 var fs_1 = __importDefault(require("fs"));
 var https_1 = __importDefault(require("https"));
 var NodePrint_1 = __importStar(require("./NodePrint"));
-var CardRead_1 = __importDefault(require("./CardRead"));
 var node_native_printer_1 = __importDefault(require("node-native-printer"));
 node_native_printer_1.default.setPrinter("Magicard_600");
 var pathCardPrint = require("path");
@@ -79,92 +78,9 @@ var CardPrinter = /** @class */ (function (_super) {
             });
         });
     };
-    CardPrinter.prototype.printingStarted = function (printJobData, jobId, message) {
-        var _this = this;
-        // Scan card
-        var cardReader = new CardRead_1.default("ttyPrinterReader");
-        var successfulScan = false;
-        cardReader.startScanning();
-        cardReader.readCardNumber(function (cardNumberHex) {
-            var last8Digits = cardNumberHex.substr(cardNumberHex.length - 8, cardNumberHex.length);
-            _this.ws.updateAccessRecord(message.accessRecordId, cardNumberHex);
-            successfulScan = true;
-            _this.mq.deleteMessage(_this.qName, printJobData.id, function (success) { });
-            //@ts-ignore
-            _this.checkPrintingStoppedShort(jobId, message.id, successfulScan, false);
-        });
-        setTimeout(function () {
-            if (!successfulScan) {
-                _this.mq.deleteMessage(_this.qName, printJobData.id, function (success) { });
-                _this.checkPrintingStopped(jobId, message.id, successfulScan);
-            }
-        }, 6500);
-    };
-    /**
-     * When the printing has stopped, set the print job to complete
-     * And send success update
-     */
-    CardPrinter.prototype.printingStopped = function (jobId, messageId, successfulScan, holdUi) {
-        if (holdUi === void 0) { holdUi = false; }
-        this.currentJobId = null;
-        this.state.idle();
-    };
-    /**
-     * Listen for when the printing starts
-     * Loop every 500ms and when it starts, run printing started to scan card
-     */
-    CardPrinter.prototype.checkPrintingStarted = function (printJobData, printString, message) {
-        var _this = this;
-        var jobId = printString &&
-            printString.match(/-([0-9]+)/) &&
-            printString.match(/-([0-9]+)/)[1];
-        var printerInfo = node_native_printer_1.default.printerInfo("Magicard_600");
-        var job = printerInfo.jobs.find(function (job) { return job.id === jobId; });
-        this.numTimesCheckedPrinted++;
-        if (((job && (job.status === "processing" || job.status === "pending")) ||
-            !job) &&
-            this.numTimesCheckedPrinted === 27) {
-            this.numTimesCheckedPrinted = 0;
-            this.finishPrintJob(printJobData.id);
-            return;
-        }
-        if ((job && job.status === "processing") ||
-            printerInfo.CUPSOptions["printer-state"] === "3") {
-            this.numTimesCheckedPrinted = 0;
-            setTimeout(function () {
-                _this.printingStarted(printJobData, jobId, message);
-            }, 200);
-        }
-        else {
-            setTimeout(function () { return _this.checkPrintingStarted(printJobData, printString, message); }, 500);
-        }
-    };
-    /**
-     * Listen for when the priting is over,
-     * Loop every 500 ms, and when finished run printing stopped function
-     */
-    CardPrinter.prototype.checkPrintingStopped = function (jobId, messageId, successfulScan) {
-        var _this = this;
-        setTimeout(function () {
-            _this.printingStopped(jobId, messageId, successfulScan, true);
-        }, 7000);
-    };
-    CardPrinter.prototype.checkPrintingStoppedShort = function (jobId, messageId, successfulScan) {
-        var _this = this;
-        setTimeout(function () {
-            _this.printingStopped(jobId, messageId, successfulScan, false);
-        }, 10500);
-    };
-    /**
-     * Use PDF in payload,
-     * If no PDF, end the print job
-     * Download PDF and print it in FITPLOT mode
-     * and listen for when it starts
-     */
     CardPrinter.prototype.beginPrinting = function (printJobData) {
         var _this = this;
         var message = JSON.parse(printJobData.message);
-        // Update print job status to processing
         var pdfUrl = JSON.parse(message.data).pdfUrl;
         if (!pdfUrl) {
             this.finishPrintJob(printJobData.id);
@@ -174,8 +90,12 @@ var CardPrinter = /** @class */ (function (_super) {
             setTimeout(function () {
                 var options = { fitplot: true };
                 var printString = node_native_printer_1.default.print(NodePrint_1.mp("../downloads/" + filename), options, "Magicard_600");
-                _this.checkPrintingStarted(printJobData, printString, message);
             }, 1500);
+            setTimeout(function () {
+                _this.currentJobId = null;
+                _this.state.idle();
+                _this.mq.deleteMessage(_this.qName, printJobData.id, function (success) { });
+            }, 6500);
         });
     };
     return CardPrinter;

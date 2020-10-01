@@ -12,11 +12,8 @@ RUN install_packages \
 
 
 
-# Copies the package.json first for better cache on later pushes
 COPY package.json package.json
 
-# This install npm dependencies on the balena build server,
-# making sure to clean up the artifacts it creates in order to reduce the image size.
 RUN JOBS=MAX npm install --production --unsafe-perm && npm cache verify
 
 FROM balenalib/%%BALENA_MACHINE_NAME%%-node:8-stretch
@@ -39,17 +36,8 @@ RUN install_packages \
     python build-essential libusb-1.0-0-dev 
 
 COPY --from=build /usr/src/app/node_modules /usr/src/app/node_modules
-
-# Defines our working directory in container
-# Install dependencies - remove rsync
-
-
-# This will copy all files in our root to the working  directory in the container
 COPY ./build ./build
 COPY ./logos ./logos
-
-
-# Enable udev for detection of dynamically plugged devices
 ENV UDEV=on
 COPY udev/symlink.rules /etc/udev/rules.d/symlink.rules
 COPY start.sh ./
@@ -59,11 +47,6 @@ ENV WEBSOCKET_URL 'wss://entabeni-api-staging.herokuapp.com/cable'
 ENV IS_PRODUCTION '0'
 ENV PRINT_TERMINAL_ID 'f8ea744a-d959-4ae4-b3f8-4711cced2020'
 ENV TERMINAL_PASSWORD '973595bf280d548eb8455d4f2d131561'
-
-
-# Make udev script executable
-# RUN chmod +x udev/copy.sh
-# RUN npm install pm2 -g --no-optional
+RUN npm install pm2 -g --no-optional
 COPY package.json package.json
-
 CMD ["bash", "start.sh"]
