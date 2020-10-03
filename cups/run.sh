@@ -28,15 +28,14 @@ then
         # Set it as the default printer
         lpadmin -d 'Magicard_600'
         echo "Setting up CUPS default print options"
-        sudo sed -ir 's/CFColourFormat.*/Colour format: 2MonoK/g;  
-         s/CFBlackResin.*/Black resin options: 0BlackResinK/g;  
-         s/CFOverCoat.*/Overcoat: 0PrintNoOvercoat/g;  
-         s/CFHoloKote.*/HoloKote(R): 0PrintNoHoloKote/g;  
-         s/CFHoloPatch.*/HoloPatch(R): 0PrintNoHoloPatch/g;  
-         s/CFRotation.*/Rotation: 1Rotation/g;  
-         s/CFHolokoteRotation.*/HoloKote(R) Rotation: 2HolokoteRotation/g;  
-         s/CFUsewithLaminate.*/Use with Laminate: 0UsewithLaminate/g;'
-         /usr/share/cups/model/ultra/pro360.ppd
+        sudo sed -ir 's/*DefaultCFBlackResin: 1BlackResinYMC/*DefaultCFBlackResin: 0BlackResinK/g;
+                s/*DefaultCFOverCoat: 1PrintOvercoat/*DefaultCFOverCoat: 0PrintNoOvercoat/g;
+                s/*DefaultCFHoloKote: 1PrintHoloKote/*DefaultCFHoloKote: 0PrintNoHoloKote/g;
+                s/*DefaultCFRotation: 0Rotation/*DefaultCFRotation: 1Rotation/g;
+                s/*DefaultCFUsewithLaminate: 0UsewithLaminate/*DefaultCFUsewithLaminate: 1UsewithLaminate/g;' /usr/share/cups/model/ultra/pro360.ppd
+        echo "Setting retry policy"
+        lpadmin -p Magicard_600 -o printer-error-policy=abort-job
+
     fi
 fi
 # Tell the container that DBUS should report to Host OS
