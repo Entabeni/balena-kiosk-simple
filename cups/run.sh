@@ -1,5 +1,10 @@
 #!/bin/bash
 # ultra/pro360.ppd Magicard Rio Pro 360
+
+echo "Starting CUPS2"
+cupsd -f &
+
+
 sleep 10
 echo 'Starting1'
 sudo systemctl start org.cups.cupsd.service
@@ -47,10 +52,6 @@ export DBUS_SYSTEM_BUS_ADDRESS=unix:path=/host/run/dbus/system_bus_socket
 iptables -A INPUT -i resin-vpn -m state --state ESTABLISHED,RELATED -j ACCEPT
 iptables -A INPUT -p tcp --dport 80 -i resin-vpn -j ACCEPT
 iptables -A INPUT -p tcp --dport 80 -j REJECT
-
-echo "Starting CUPS2"
-cupsd -f &
-
 
 
 wait
