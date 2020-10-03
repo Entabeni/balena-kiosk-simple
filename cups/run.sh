@@ -1,39 +1,41 @@
 #!/bin/bash
 # ultra/pro360.ppd Magicard Rio Pro 360
-uuu=$(lpinfo -v | grep usb://Magicard/600)
-URLFIN=${uuu#"direct "}
-echo $URLFIN
+sleep 10
+echo 'Starting1'
+sudo systemctl start org.cups.cupsd.service
+echo 'Starting2'
+sleep 10
+
+echo 'Starting'
+ABCD=$(lpinfo -v | grep usb://Magicard/600)
+echo $ABCD
+URLFIN1=${ABCD#"direct "}
+echo $URLFIN1
+sudo sed -ir 's/*DefaultCFBlackResin: 1BlackResinYMC/*DefaultCFBlackResin: 0BlackResinK/g;
+            s/*DefaultCFOverCoat: 1PrintOvercoat/*DefaultCFOverCoat: 0PrintNoOvercoat/g;
+            s/*DefaultCFColourFormat: 0ColourYMC/*DefaultCFColourFormat: 2MonoK/g;
+            s/*DefaultCFHoloKote: 1PrintHoloKote/*DefaultCFHoloKote: 0PrintNoHoloKote/g;
+            s/*DefaultCFRotation: 0Rotation/*DefaultCFRotation: 1Rotation/g;
+            s/*DefaultCFUsewithLaminate: 0UsewithLaminate/*DefaultCFUsewithLaminate: 1UsewithLaminate/g;' /usr/share/cups/model/ultra/pro360.ppd
+echo 'Updated ppd'
 
 # Check to see if the printer is already installed
 if [ `lpstat -p 2>&1 | grep -E 'Magicard' -c || true` = "0" ]
 then
     # Make sure the printer is available before trying to install it (check the printer web page)
-    if [ $URLFIN ]
+    if [ $URLFIN1 ]
     then
         echo "Installing MAGICARD !!!"
         lpadmin \
             -p 'Magicard_600' \
-            -v 'usb://Magicard/600?serial=72925919' \
+            -v $URLFIN1 \
             -m 'Magicard 600' \
             -P '/usr/share/cups/model/ultra/pro360.ppd' \
-            -o 'CFColourFormat/Colour format=2MonoK' \
-            -o 'CFBlackResin/Black resin options=0BlackResinK' \
-            -o 'CFOverCoat/Overcoat=0PrintNoOvercoat' \
-            -o 'CFHoloKote/HoloKote(R)=0PrintNoHoloKote' \
-            -o 'CFHoloPatch/HoloPatch(R)=0PrintNoHoloPatch' \
-            -o 'CFRotation/Rotation=1Rotation' \
-            -o 'CFHolokoteRotation/HoloKote(R) Rotation=2HolokoteRotation' \
-            -o 'CFUsewithLaminate/Use with Laminate=0UsewithLaminate' \
             -E
         # Set it as the default printer
         lpadmin -d 'Magicard_600'
         echo "Setting up CUPS default print options"
-        sudo sed -ir 's/*DefaultCFBlackResin: 1BlackResinYMC/*DefaultCFBlackResin: 0BlackResinK/g;
-                s/*DefaultCFOverCoat: 1PrintOvercoat/*DefaultCFOverCoat: 0PrintNoOvercoat/g;
-                s/*DefaultCFHoloKote: 1PrintHoloKote/*DefaultCFHoloKote: 0PrintNoHoloKote/g;
-                s/*DefaultCFRotation: 0Rotation/*DefaultCFRotation: 1Rotation/g;
-                s/*DefaultCFUsewithLaminate: 0UsewithLaminate/*DefaultCFUsewithLaminate: 1UsewithLaminate/g;' /usr/share/cups/model/ultra/pro360.ppd
-        echo "Setting retry policy"
+              echo "Setting retry policy"
         lpadmin -p Magicard_600 -o printer-error-policy=abort-job
 
     fi

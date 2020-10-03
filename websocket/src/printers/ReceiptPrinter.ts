@@ -285,7 +285,7 @@ class ReceiptPrinter extends NodePrinter {
       printer
         .println("Sales Receipt")
         .println("Sale Number: " + data.sale.number)
-        .println(data.sale.associateName)
+        .println(data.sale.associateName ? data.sale.associateName : "")
         .println(data.sale.date)
         .feed(2)
         .align("LT");
