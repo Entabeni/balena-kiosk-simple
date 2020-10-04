@@ -7,7 +7,7 @@ cupsd -f &
 
 sleep 10
 echo 'Starting1'
-sudo systemctl start org.cups.cupsd.service
+chown -R root:root /usr/share/cups/model/ultra/
 echo 'Starting2'
 sleep 10
 
