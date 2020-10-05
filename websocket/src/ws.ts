@@ -23,11 +23,14 @@ import ws from "ws";
 import MessageQueue from "./messageQueue";
 import StateMachine from "./stateMachine";
 const isProd = process.env.IS_PRODUCTION === "1";
-const backendUrl = isProd
+let backendUrl = isProd
   ? "entabeni-api.herokuapp.com"
   : "entabeni-api-staging.herokuapp.com";
+const isPreProd = process.env.IS_PRODUCTION === "2";
+if (isPreProd) {
+  backendUrl = "pre-production-api.herokuapp.com";
+}
 const websocketUrl = `wss://${backendUrl}/cable`;
-
 interface PrintJobData {
   newPrintJob: {
     id: string;

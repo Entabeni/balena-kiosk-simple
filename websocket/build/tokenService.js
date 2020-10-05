@@ -30,6 +30,10 @@ var isProd = process.env.IS_PRODUCTION === "1";
 var backendUrl = isProd
     ? "entabeni-api.herokuapp.com"
     : "entabeni-api-staging.herokuapp.com";
+var isPreProd = process.env.IS_PRODUCTION === "2";
+if (isPreProd) {
+    backendUrl = "pre-production-api.herokuapp.com";
+}
 var websocketUrl = "wss://" + backendUrl + "/cable";
 var deviceMac = process.env.DEVICE_MAC || "CA:2D:E9:8D:17:67";
 var password = process.env.TERMINAL_PASSWORD || "973595bf280d548eb8455d4f2d131561";

@@ -20,10 +20,15 @@ import { getMainDefinition } from "apollo-utilities";
 import ActionCableLink from "graphql-ruby-client/subscriptions/ActionCableLink";
 import ws from "ws";
 const isProd = process.env.IS_PRODUCTION === "1";
-const backendUrl = isProd
+let backendUrl = isProd
   ? "entabeni-api.herokuapp.com"
   : "entabeni-api-staging.herokuapp.com";
+const isPreProd = process.env.IS_PRODUCTION === "2";
+if (isPreProd) {
+  backendUrl = "pre-production-api.herokuapp.com";
+}
 const websocketUrl = `wss://${backendUrl}/cable`;
+
 const deviceMac = process.env.DEVICE_MAC || "CA:2D:E9:8D:17:67";
 const password =
   process.env.TERMINAL_PASSWORD || "973595bf280d548eb8455d4f2d131561";
@@ -32,8 +37,6 @@ const envPrintTerminalId =
 const frontendUrl =
   `https://${backendUrl}/?frontEndUrl=https://${process.env.FRONTEND_URL}/` ||
   "https://entabeni-api-staging.herokuapp.com/?frontEndUrl=https://pos-demo.entabeni.tech/";
-
-
 
 const SIGN_IN_TERMINAL_MUTATION = gql`
   mutation SignInTerminal(

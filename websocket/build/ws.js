@@ -32,6 +32,10 @@ var isProd = process.env.IS_PRODUCTION === "1";
 var backendUrl = isProd
     ? "entabeni-api.herokuapp.com"
     : "entabeni-api-staging.herokuapp.com";
+var isPreProd = process.env.IS_PRODUCTION === "2";
+if (isPreProd) {
+    backendUrl = "pre-production-api.herokuapp.com";
+}
 var websocketUrl = "wss://" + backendUrl + "/cable";
 var PRINT_JOBS_SUBSCRIPTION = apollo_boost_1.gql(templateObject_1 || (templateObject_1 = __makeTemplateObject(["\n  subscription onNewPrintJob($printTerminalId: String!) {\n    newPrintJob(printTerminalId: $printTerminalId) {\n      id\n      printData\n      printJobType\n      resolution\n      status\n      accessRecordId\n      printTerminalId\n      saleId\n    }\n  }\n"], ["\n  subscription onNewPrintJob($printTerminalId: String!) {\n    newPrintJob(printTerminalId: $printTerminalId) {\n      id\n      printData\n      printJobType\n      resolution\n      status\n      accessRecordId\n      printTerminalId\n      saleId\n    }\n  }\n"])));
 var SCAN_JOBS_SUBSCRIPTION = apollo_boost_1.gql(templateObject_2 || (templateObject_2 = __makeTemplateObject(["\n  subscription onNewScanJob($printTerminalId: String!) {\n    newScanJob(printTerminalId: $printTerminalId) {\n      id\n      status\n      accessRecordId\n    }\n  }\n"], ["\n  subscription onNewScanJob($printTerminalId: String!) {\n    newScanJob(printTerminalId: $printTerminalId) {\n      id\n      status\n      accessRecordId\n    }\n  }\n"])));
