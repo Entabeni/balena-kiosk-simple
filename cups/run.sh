@@ -5,11 +5,9 @@ echo "Starting CUPS2"
 cupsd -f &
 
 
-sleep 10
 echo 'Starting1'
 chown -R root:root /usr/share/cups/model/ultra/
 echo 'Starting2'
-sleep 10
 
 echo 'Starting'
 ABCD=$(lpinfo -v | grep usb://Magicard/600)
