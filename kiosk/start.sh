@@ -151,7 +151,7 @@ if [ ! -z ${DEBUG+x} ] && [ "$DEBUG" -eq "1" ]
     export OUTPUT='>/dev/null 2>&1'
 fi
 echo "xset s off -dpms" >> /home/chromium/xstart.sh
-echo "chromium-browser $CHROME_LAUNCH_URL $FLAGS  --window-size=$WINDOW_SIZE --window-position=$WINDOW_POSITION $OUTPUT" >> /home/chromium/xstart.sh
+echo "chromium-browser $CHROME_LAUNCH_URL $FLAGS --disable-pinch –overscroll-history-navigation=0  --window-size=$WINDOW_SIZE --window-position=$WINDOW_POSITION $OUTPUT" >> /home/chromium/xstart.sh
 
 chmod 770 /home/chromium/*.sh 
 chown chromium:chromium /home/chromium/xstart.sh

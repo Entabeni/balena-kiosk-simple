@@ -4,11 +4,16 @@
 echo "Starting CUPS2"
 cupsd -f &
 
-
 echo 'Starting1'
 chown -R root:root /usr/share/cups/model/ultra/
 echo 'Starting2'
-
+for printer in `lpstat -p | awk '{print $2}'`; do
+    echo Deleting "$printer"
+    lpadmin -x $printer
+    echo """"
+    echo "Deleting Printers and Continuing Install"
+    echo ""
+  done
 echo 'Starting'
 ABCD=$(lpinfo -v | grep usb://Magicard/600)
 echo $ABCD
