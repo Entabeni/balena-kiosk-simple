@@ -19,12 +19,6 @@ ABCD=$(lpinfo -v | grep usb://Magicard/600)
 echo $ABCD
 URLFIN1=${ABCD#"direct "}
 echo $URLFIN1
-sudo sed -ir 's/*DefaultCFBlackResin: 1BlackResinYMC/*DefaultCFBlackResin: 0BlackResinK/g;
-            s/*DefaultCFOverCoat: 1PrintOvercoat/*DefaultCFOverCoat: 0PrintNoOvercoat/g;
-            s/*DefaultCFColourFormat: 0ColourYMC/*DefaultCFColourFormat: 2MonoK/g;
-            s/*DefaultCFHoloKote: 1PrintHoloKote/*DefaultCFHoloKote: 0PrintNoHoloKote/g;
-            s/*DefaultCFRotation: 0Rotation/*DefaultCFRotation: 1Rotation/g;
-            s/*DefaultCFUsewithLaminate: 0UsewithLaminate/*DefaultCFUsewithLaminate: 1UsewithLaminate/g;' /usr/share/cups/model/ultra/pro360.ppd
 echo 'Updated ppd'
 
 # Check to see if the printer is already installed

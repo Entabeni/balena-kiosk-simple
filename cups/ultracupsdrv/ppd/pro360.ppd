@@ -100,26 +100,26 @@
 *OpenGroup: CardFrontGroup/Card Front
 
 *OpenUI *CFColourFormat/Colour format: PickOne
-*DefaultCFColourFormat: 0ColourYMC
+*DefaultCFColourFormat: 2MonoK
 *CFColourFormat 0ColourYMC/Colour with composite black (YMC): ""
 *CFColourFormat 1ColourYMCK/Colour with resin black (YMCK): ""
 *CFColourFormat 2MonoK/Monochrome (K Only): ""
 *CloseUI: *CFColourFormat
 
 *OpenUI *CFBlackResin/Black resin options: PickOne
-*DefaultCFBlackResin: 1BlackResinYMC
+*DefaultCFBlackResin: 0BlackResinK
 *CFBlackResin 0BlackResinK/All black is printed with K: ""
 *CFBlackResin 1BlackResinYMC/All black is printed with YMC: ""
 *CloseUI: *CFBlackResin
 
 *OpenUI *CFOverCoat/Overcoat: PickOne
-*DefaultCFOverCoat: 1PrintOvercoat
+*DefaultCFOverCoat: 0PrintNoOvercoat
 *CFOverCoat 0PrintNoOvercoat/Print without overcoat layer: ""
 *CFOverCoat 1PrintOvercoat/Print overcoat layer: ""
 *CloseUI: *CFOverCoat
 
 *OpenUI *CFHoloKote/HoloKote(R): PickOne
-*DefaultCFHoloKote: 1PrintHoloKote
+*DefaultCFHoloKote: 0PrintNoHoloKote
 *CFHoloKote 0PrintNoHoloKote/Print without HoloKote(R) image: ""
 *CFHoloKote 1PrintHoloKote/Print with HoloKote(R) image: ""
 *CloseUI: *CFHoloKote
@@ -131,7 +131,7 @@
 *CloseUI: *CFHoloPatch
 
 *OpenUI *CFRotation/Rotation: PickOne
-*DefaultCFRotation: 0Rotation
+*DefaultCFRotation: 1Rotation
 *CFRotation 0Rotation/0 degrees: ""
 *CFRotation 1Rotation/180 degrees: ""
 *CloseUI: *CFRotation
@@ -300,7 +300,7 @@
 *CloseUI: *CBBlackResin
 
 *OpenUI *CBOverCoat/Overcoat: PickOne
-*DefaultCBOverCoat: 1PrintOvercoat
+*DefaultCBOverCoat: 0PrintNoOvercoat
 *CBOverCoat 0PrintNoOvercoat/Print without overcoat layer: ""
 *CBOverCoat 1PrintOvercoat/Print overcoat layer: ""
 *CloseUI: *CBOverCoat
