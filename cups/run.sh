@@ -3,10 +3,9 @@
 
 echo "Starting CUPS2"
 cupsd -f &
-
-echo 'Starting1'
 chown -R root:root /usr/share/cups/model/ultra/
-echo 'Starting2'
+
+# Delete all printers
 for printer in `lpstat -p | awk '{print $2}'`; do
     echo Deleting "$printer"
     lpadmin -x $printer
@@ -15,22 +14,21 @@ for printer in `lpstat -p | awk '{print $2}'`; do
     echo ""
   done
 echo 'Starting'
-ABCD=$(lpinfo -v | grep usb://Magicard/600)
-echo $ABCD
-URLFIN1=${ABCD#"direct "}
-echo $URLFIN1
-echo 'Updated ppd'
+PRINTERURL=$(lpinfo -v | grep usb://Magicard/600)
+echo $PRINTERURL
+FINALURL=${PRINTERURL#"direct "}
+echo $FINALURL
 
 # Check to see if the printer is already installed
 if [ `lpstat -p 2>&1 | grep -E 'Magicard' -c || true` = "0" ]
 then
     # Make sure the printer is available before trying to install it (check the printer web page)
-    if [ $URLFIN1 ]
+    if [ $FINALURL ]
     then
         echo "Installing MAGICARD !!!"
         lpadmin \
             -p 'Magicard_600' \
-            -v $URLFIN1 \
+            -v $FINALURL \
             -m 'Magicard 600' \
             -P '/usr/share/cups/model/ultra/pro360.ppd' \
             -E
@@ -42,6 +40,9 @@ then
 
     fi
 fi
+
+cupsctl --remote-admin --remote-any
+
 # Tell the container that DBUS should report to Host OS
 export DBUS_SYSTEM_BUS_ADDRESS=unix:path=/host/run/dbus/system_bus_socket
 

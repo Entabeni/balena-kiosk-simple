@@ -17,9 +17,9 @@ RUN install_packages \
 
 WORKDIR /usr/src/app
 COPY ./dynamo ./dynamo
-COPY ./ultracupsdrv ./ultracupsdrv
 RUN  cd /usr/src/app/dynamo/ && ./build.sh
 RUN  cd /usr/src/app/dynamo/ && make install
+COPY ./ultracupsdrv ./ultracupsdrv
 RUN  cd /usr/src/app/ultracupsdrv && make clean && make && make install
 # Add script
 COPY run.sh run.sh
