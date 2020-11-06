@@ -178,7 +178,7 @@ class ReceiptPrinter extends NodePrinter {
           this.addSpaces(`${lineItem.paymentMethodName}`, 25) +
             this.addSpaces(
               `${currency}${parseFloat(
-                this.getRounded(parseFloat(lineItem.amountCollected, 10))
+                this.getRounded(parseFloat(lineItem.amountCollected))
               ).toFixed(2)}`,
               25
             )

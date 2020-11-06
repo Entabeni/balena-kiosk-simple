@@ -124,7 +124,7 @@ var ReceiptPrinter = /** @class */ (function (_super) {
                 .style("NORMAL");
             data.paymentMethods.forEach(function (lineItem) {
                 printer.println(_this.addSpaces("" + lineItem.paymentMethodName, 25) +
-                    _this.addSpaces("" + currency + parseFloat(_this.getRounded(parseFloat(lineItem.amountCollected, 10))).toFixed(2), 25));
+                    _this.addSpaces("" + currency + parseFloat(_this.getRounded(parseFloat(lineItem.amountCollected))).toFixed(2), 25));
             });
         }
         // Separator;
