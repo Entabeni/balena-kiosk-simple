@@ -178,7 +178,7 @@ class ReceiptPrinter extends NodePrinter {
           this.addSpaces(`${lineItem.paymentMethodName}`, 25) +
             this.addSpaces(
               `${currency}${parseFloat(
-                this.getRounded(parseInt(lineItem.amountCollected, 10))
+                this.getRounded(parseFloat(lineItem.amountCollected, 10))
               ).toFixed(2)}`,
               25
             )
@@ -211,13 +211,13 @@ class ReceiptPrinter extends NodePrinter {
         .style("NORMAL");
 
       data.openingBalances.forEach((lineItem) => {
-        grandTotal = grandTotal + parseInt(lineItem.total);
+        grandTotal = grandTotal + parseFloat(lineItem.total);
         printer.println(
           this.addSpaces(`${lineItem.denominationName}`, 10) +
             this.addSpaces(`${lineItem.denominationValue}`, 10) +
             this.addSpaces(`${lineItem.quantity}`, 10) +
             this.addSpaces(
-              `${currency}${this.getRounded(parseInt(lineItem.total, 10))}`,
+              `${currency}${this.getRounded(parseFloat(lineItem.total))}`,
               10
             )
         );
@@ -256,13 +256,13 @@ class ReceiptPrinter extends NodePrinter {
         .style("NORMAL");
 
       data.closingBalances.forEach((lineItem) => {
-        grandTotalClosing = grandTotalClosing + parseInt(lineItem.total);
+        grandTotalClosing = grandTotalClosing + parseFloat(lineItem.total);
         printer.println(
           this.addSpaces(`${lineItem.denominationName}`, 10) +
             this.addSpaces(`${lineItem.denominationValue}`, 10) +
             this.addSpaces(`${lineItem.quantity}`, 10) +
             this.addSpaces(
-              `${currency}${this.getRounded(parseInt(lineItem.total, 10))}`,
+              `${currency}${this.getRounded(parseFloat(lineItem.total))}`,
               10
             )
         );
@@ -306,7 +306,7 @@ class ReceiptPrinter extends NodePrinter {
             this.addSpaces(`${lineItem.quantity}`, 4) +
               this.addSpaces(lineItem.name, 36) +
               this.addSpaces(
-                `${currency}${parseInt(lineItem.subTotal).toFixed(2)}`,
+                `${currency}${parseFloat(lineItem.subTotal).toFixed(2)}`,
                 7
               )
           );
@@ -321,7 +321,7 @@ class ReceiptPrinter extends NodePrinter {
                 this.addSpaces("", 10) +
                   this.addSpaces(discount.name, 25) +
                   this.addSpaces(
-                    `(${currency}${parseInt(discount.subTotal).toFixed(2)})`,
+                    `(${currency}${parseFloat(discount.subTotal).toFixed(2)})`,
                     7
                   )
               );
@@ -341,7 +341,7 @@ class ReceiptPrinter extends NodePrinter {
         this.addSpaces("", 20) +
           this.addSpaces("Sub Total", 15) +
           this.addSpaces(
-            `${currency}${parseInt(data.sale.subTotal ?? "0").toFixed(2)}`,
+            `${currency}${parseFloat(data.sale.subTotal ?? "0").toFixed(2)}`,
             7
           )
       );
@@ -357,7 +357,7 @@ class ReceiptPrinter extends NodePrinter {
         this.addSpaces("", 20) +
           this.addSpaces("Total", 15) +
           this.addSpaces(
-            `${currency}${parseInt(data.sale.total).toFixed(2)}`,
+            `${currency}${parseFloat(data.sale.total).toFixed(2)}`,
             7
           )
       );
@@ -379,7 +379,7 @@ class ReceiptPrinter extends NodePrinter {
             .println(
               this.addSpaces("Amount", 20) +
                 this.addSpaces(
-                  `${currency}${parseInt(payment.amount).toFixed(2)}`,
+                  `${currency}${parseFloat(payment.amount).toFixed(2)}`,
                   10
                 )
             );

@@ -124,7 +124,7 @@ var ReceiptPrinter = /** @class */ (function (_super) {
                 .style("NORMAL");
             data.paymentMethods.forEach(function (lineItem) {
                 printer.println(_this.addSpaces("" + lineItem.paymentMethodName, 25) +
-                    _this.addSpaces("" + currency + parseFloat(_this.getRounded(parseInt(lineItem.amountCollected, 10))).toFixed(2), 25));
+                    _this.addSpaces("" + currency + parseFloat(_this.getRounded(parseFloat(lineItem.amountCollected, 10))).toFixed(2), 25));
             });
         }
         // Separator;
@@ -147,11 +147,11 @@ var ReceiptPrinter = /** @class */ (function (_super) {
                 this.addSpaces("Total", 10))
                 .style("NORMAL");
             data.openingBalances.forEach(function (lineItem) {
-                grandTotal = grandTotal + parseInt(lineItem.total);
+                grandTotal = grandTotal + parseFloat(lineItem.total);
                 printer.println(_this.addSpaces("" + lineItem.denominationName, 10) +
                     _this.addSpaces("" + lineItem.denominationValue, 10) +
                     _this.addSpaces("" + lineItem.quantity, 10) +
-                    _this.addSpaces("" + currency + _this.getRounded(parseInt(lineItem.total, 10)), 10));
+                    _this.addSpaces("" + currency + _this.getRounded(parseFloat(lineItem.total)), 10));
             });
         }
         printer
@@ -179,11 +179,11 @@ var ReceiptPrinter = /** @class */ (function (_super) {
                 this.addSpaces("Total", 10))
                 .style("NORMAL");
             data.closingBalances.forEach(function (lineItem) {
-                grandTotalClosing = grandTotalClosing + parseInt(lineItem.total);
+                grandTotalClosing = grandTotalClosing + parseFloat(lineItem.total);
                 printer.println(_this.addSpaces("" + lineItem.denominationName, 10) +
                     _this.addSpaces("" + lineItem.denominationValue, 10) +
                     _this.addSpaces("" + lineItem.quantity, 10) +
-                    _this.addSpaces("" + currency + _this.getRounded(parseInt(lineItem.total, 10)), 10));
+                    _this.addSpaces("" + currency + _this.getRounded(parseFloat(lineItem.total)), 10));
             });
         }
         printer
@@ -217,7 +217,7 @@ var ReceiptPrinter = /** @class */ (function (_super) {
                 data.sale.lineItems.forEach(function (lineItem) {
                     printer.println(_this.addSpaces("" + lineItem.quantity, 4) +
                         _this.addSpaces(lineItem.name, 36) +
-                        _this.addSpaces("" + currency + parseInt(lineItem.subTotal).toFixed(2), 7));
+                        _this.addSpaces("" + currency + parseFloat(lineItem.subTotal).toFixed(2), 7));
                     if (lineItem.guest) {
                         printer.println(_this.addSpaces("", 10) + _this.addSpaces(lineItem.guest, 25));
                     }
@@ -225,7 +225,7 @@ var ReceiptPrinter = /** @class */ (function (_super) {
                         lineItem.discount.map(function (discount) {
                             printer.println(_this.addSpaces("", 10) +
                                 _this.addSpaces(discount.name, 25) +
-                                _this.addSpaces("(" + currency + parseInt(discount.subTotal).toFixed(2) + ")", 7));
+                                _this.addSpaces("(" + currency + parseFloat(discount.subTotal).toFixed(2) + ")", 7));
                         });
                     }
                 });
@@ -238,7 +238,7 @@ var ReceiptPrinter = /** @class */ (function (_super) {
             // Totals;
             printer.println(this.addSpaces("", 20) +
                 this.addSpaces("Sub Total", 15) +
-                this.addSpaces("" + currency + parseInt((_a = data.sale.subTotal) !== null && _a !== void 0 ? _a : "0").toFixed(2), 7));
+                this.addSpaces("" + currency + parseFloat((_a = data.sale.subTotal) !== null && _a !== void 0 ? _a : "0").toFixed(2), 7));
             Object.entries(data.sale.taxTotals).forEach(function (_a) {
                 var key = _a[0], value = _a[1];
                 printer.println(_this.addSpaces("", 20) +
@@ -248,7 +248,7 @@ var ReceiptPrinter = /** @class */ (function (_super) {
             });
             printer.println(this.addSpaces("", 20) +
                 this.addSpaces("Total", 15) +
-                this.addSpaces("" + currency + parseInt(data.sale.total).toFixed(2), 7));
+                this.addSpaces("" + currency + parseFloat(data.sale.total).toFixed(2), 7));
             // Separator;
             printer
                 .feed()
@@ -261,7 +261,7 @@ var ReceiptPrinter = /** @class */ (function (_super) {
                         .println(_this.addSpaces("Payment Method", 20) +
                         _this.addSpaces(payment.name, 10))
                         .println(_this.addSpaces("Amount", 20) +
-                        _this.addSpaces("" + currency + parseInt(payment.amount).toFixed(2), 10));
+                        _this.addSpaces("" + currency + parseFloat(payment.amount).toFixed(2), 10));
                 });
                 printer.feed(2);
             }
