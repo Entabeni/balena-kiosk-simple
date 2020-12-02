@@ -14,7 +14,7 @@ for printer in `lpstat -p | awk '{print $2}'`; do
     echo ""
   done
 echo 'Starting'
-PRINTERURL=$(lpinfo -v | grep usb://Magicard/600)
+PRINTERURL=$(lpinfo -v | grep usb://Magicard)
 echo $PRINTERURL
 FINALURL=${PRINTERURL#"direct "}
 echo $FINALURL
