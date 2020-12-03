@@ -56,7 +56,7 @@ var CardScanner = /** @class */ (function (_super) {
             return;
         }
         // Update print job status to processing
-        this.ws.updateScanJob(message.id, "processing");
+        // this.ws.updateScanJob(message.id, "processing");
         this.openScanner(printJobData);
     };
     CardScanner.prototype.openScanner = function (printJobData) {

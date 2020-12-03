@@ -48,7 +48,7 @@ class CardScanner extends NodePrinter {
       return;
     }
     // Update print job status to processing
-    this.ws.updateScanJob(message.id, "processing");
+    // this.ws.updateScanJob(message.id, "processing");
     this.openScanner(printJobData);
   }
 
