@@ -39,7 +39,6 @@ var uuid_1 = require("uuid");
 var fs_1 = __importDefault(require("fs"));
 var https_1 = __importDefault(require("https"));
 var NodePrint_1 = __importStar(require("./NodePrint"));
-var CardRead_1 = __importDefault(require("./CardRead"));
 var node_native_printer_1 = __importDefault(require("node-native-printer"));
 node_native_printer_1.default.setPrinter("Magicard_600");
 var pathCardPrint = require("path");
@@ -80,31 +79,7 @@ var CardPrinter = /** @class */ (function (_super) {
         });
     };
     CardPrinter.prototype.printingStarted = function (printJobData, jobId, message) {
-        var _this = this;
-        // Scan card
-        var cardReader = new CardRead_1.default("ttyPrinterReader");
-        var successfulScan = false;
-        cardReader.startScanning();
-        cardReader.readCardNumber(function (cardNumberHex) {
-            var last8Digits = cardNumberHex.substr(cardNumberHex.length - 8, cardNumberHex.length);
-            successfulScan = true;
-            _this.mq.deleteMessage(_this.qName, printJobData.id, function (success) { });
-            //@ts-ignore
-            _this.checkPrintingStoppedShort(jobId, message.id, successfulScan, false);
-        });
-        setTimeout(function () {
-            if (!successfulScan) {
-                _this.mq.deleteMessage(_this.qName, printJobData.id, function (success) { });
-                _this.checkPrintingStopped(jobId, message.id, successfulScan);
-            }
-        }, 6500);
-    };
-    /**
-     * When the printing has stopped, set the print job to complete
-     * And send success update
-     */
-    CardPrinter.prototype.printingStopped = function (jobId, messageId, successfulScan, holdUi) {
-        if (holdUi === void 0) { holdUi = false; }
+        this.mq.deleteMessage(this.qName, printJobData.id, function (success) { });
         this.currentJobId = null;
         this.state.idle();
     };
@@ -137,22 +112,6 @@ var CardPrinter = /** @class */ (function (_super) {
         else {
             setTimeout(function () { return _this.checkPrintingStarted(printJobData, printString, message); }, 500);
         }
-    };
-    /**
-     * Listen for when the priting is over,
-     * Loop every 500 ms, and when finished run printing stopped function
-     */
-    CardPrinter.prototype.checkPrintingStopped = function (jobId, messageId, successfulScan) {
-        var _this = this;
-        setTimeout(function () {
-            _this.printingStopped(jobId, messageId, successfulScan, true);
-        }, 7000);
-    };
-    CardPrinter.prototype.checkPrintingStoppedShort = function (jobId, messageId, successfulScan) {
-        var _this = this;
-        setTimeout(function () {
-            _this.printingStopped(jobId, messageId, successfulScan, false);
-        }, 10500);
     };
     /**
      * Use PDF in payload,

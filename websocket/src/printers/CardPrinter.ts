@@ -49,39 +49,10 @@ class CardPrinter extends NodePrinter {
   }
 
   printingStarted(printJobData, jobId, message) {
-    // Scan card
-    const cardReader = new CardRead("ttyPrinterReader");
-
-    let successfulScan = false;
-    cardReader.startScanning();
-    cardReader.readCardNumber((cardNumberHex) => {
-      const last8Digits = cardNumberHex.substr(
-        cardNumberHex.length - 8,
-        cardNumberHex.length
-      );
-
-      successfulScan = true;
-      this.mq.deleteMessage(this.qName, printJobData.id, (success) => {});
-      //@ts-ignore
-      this.checkPrintingStoppedShort(jobId, message.id, successfulScan, false);
-    });
-    setTimeout(() => {
-      if (!successfulScan) {
-        this.mq.deleteMessage(this.qName, printJobData.id, (success) => {});
-        this.checkPrintingStopped(jobId, message.id, successfulScan);
-      }
-    }, 6500);
-  }
-
-  /**
-   * When the printing has stopped, set the print job to complete
-   * And send success update
-   */
-  printingStopped(jobId, messageId, successfulScan, holdUi = false) {
+    this.mq.deleteMessage(this.qName, printJobData.id, (success) => {});
     this.currentJobId = null;
     this.state.idle();
   }
-  s;
 
   /**
    * Listen for when the printing starts
@@ -119,21 +90,6 @@ class CardPrinter extends NodePrinter {
         500
       );
     }
-  }
-
-  /**
-   * Listen for when the priting is over,
-   * Loop every 500 ms, and when finished run printing stopped function
-   */
-  checkPrintingStopped(jobId, messageId, successfulScan) {
-    setTimeout(() => {
-      this.printingStopped(jobId, messageId, successfulScan, true);
-    }, 7000);
-  }
-  checkPrintingStoppedShort(jobId, messageId, successfulScan) {
-    setTimeout(() => {
-      this.printingStopped(jobId, messageId, successfulScan, false);
-    }, 10500);
   }
 
   /**

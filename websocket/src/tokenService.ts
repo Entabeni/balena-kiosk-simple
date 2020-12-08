@@ -13,7 +13,10 @@ import { ApolloLink, from, split } from "apollo-link";
 //@ts-ignore
 import { onError } from "apollo-link-error";
 //@ts-ignore
+import getMAC from "getmac";
+//@ts-ignore
 import { createHttpLink } from "apollo-link-http";
+console.log(getMAC("eth0"));
 
 import { getMainDefinition } from "apollo-utilities";
 //@ts-ignore
@@ -29,7 +32,7 @@ if (isPreProd) {
 }
 const websocketUrl = `wss://${backendUrl}/cable`;
 
-const deviceMac = process.env.DEVICE_MAC || "CA:2D:E9:8D:17:67";
+const deviceMac = getMAC("eth0") || "CA:2D:E9:8D:17:67";
 const password =
   process.env.TERMINAL_PASSWORD || "973595bf280d548eb8455d4f2d131561";
 const envPrintTerminalId =

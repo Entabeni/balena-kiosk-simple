@@ -31,7 +31,7 @@
     "escpos": "^2.4.9",
     "eslint-config-prettier": "^6.5.0",
     "eslint-plugin-prettier": "^3.1.1",
-    "form-data": "^3.0.0",
+  "form-data": "^3.0.0",
     "getmac": "^5.16.0",
     "graphql": "^14.3.0",
     "graphql-ruby-client": "1.6.4",
