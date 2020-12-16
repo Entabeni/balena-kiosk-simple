@@ -2,6 +2,7 @@ FROM balenablocks/browser:fincm3
 
 WORKDIR /usr/src/app
 
+COPY test_policy.json /etc/opt/chrome/policies/managed/
 COPY start.sh .
 ENV CLIENT_FACING '0'
 ENV SHOW_CURSOR '1'

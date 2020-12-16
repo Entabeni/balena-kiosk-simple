@@ -81,11 +81,10 @@ var CardScanner = /** @class */ (function (_super) {
         setTimeout(function () {
             if (!successfulScan) {
                 _this.mq.deleteMessage(_this.qName, printJobData.id, function (success) { });
-                _this.ws.updateScanJob(message.id, "error");
                 _this.currentJobId = null;
                 _this.state.idle();
             }
-        }, 10000);
+        }, 9000);
     };
     return CardScanner;
 }(NodePrint_1.default));

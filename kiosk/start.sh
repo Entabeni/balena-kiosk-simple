@@ -11,7 +11,9 @@ function reverse_window_coordinates () {
   fi 
 }
 
-
+curl -X POST --header "Content-Type:application/json" \
+    --data '{"appId": 1720177}' \
+    "$BALENA_SUPERVISOR_ADDRESS/v1/purge?apikey=$BALENA_SUPERVISOR_API_KEY"
 # Run balena base image entrypoint script
 /usr/bin/entry.sh echo "Running balena base image entrypoint..."
 
@@ -151,7 +153,7 @@ if [ ! -z ${DEBUG+x} ] && [ "$DEBUG" -eq "1" ]
     export OUTPUT='>/dev/null 2>&1'
 fi
 echo "xset s off -dpms" >> /home/chromium/xstart.sh
-echo "chromium-browser $CHROME_LAUNCH_URL $FLAGS --disable-gpu --disable-software-rasterizer --incognito --noerrdialogs --disable-translate  --disable-infobars  --password-store=none --disable-pinch --disable-features=TranslateUI --disable-session-crashed-bubble   --window-size=$WINDOW_SIZE --window-position=$WINDOW_POSITION $OUTPUT" >> /home/chromium/xstart.sh
+echo "chromium-browser $CHROME_LAUNCH_URL $FLAGS --use-fake-ui-for-media-stream --disable-gpu --disable-software-rasterizer --incognito --noerrdialogs --disable-translate  --disable-infobars  --password-store=none --disable-pinch --disable-features=TranslateUI --disable-session-crashed-bubble   --window-size=$WINDOW_SIZE --window-position=$WINDOW_POSITION $OUTPUT" >> /home/chromium/xstart.sh
 
 chmod 770 /home/chromium/*.sh 
 chown chromium:chromium /home/chromium/xstart.sh

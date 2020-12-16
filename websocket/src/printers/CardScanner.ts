@@ -77,11 +77,10 @@ class CardScanner extends NodePrinter {
     setTimeout(() => {
       if (!successfulScan) {
         this.mq.deleteMessage(this.qName, printJobData.id, (success) => {});
-        this.ws.updateScanJob(message.id, "error");
         this.currentJobId = null;
         this.state.idle();
       }
-    }, 10000);
+    }, 9000);
   }
 }
 
