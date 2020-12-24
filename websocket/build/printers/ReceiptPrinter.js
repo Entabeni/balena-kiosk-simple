@@ -18,6 +18,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.mp = void 0;
 var NodePrint_1 = __importDefault(require("./NodePrint"));
+// @ts-ignore
 var escpos_1 = require("escpos");
 var path = require("path");
 var currency = "$";
@@ -56,10 +57,7 @@ var ReceiptPrinter = /** @class */ (function (_super) {
         return str;
     };
     ReceiptPrinter.prototype.printReceiptHeader = function (printer, image, data) {
-        printer
-            .align("CT")
-            .size(1, 1)
-            .style("NORMAL");
+        printer.align("CT").size(1, 1).style("NORMAL");
         // Resort logo
         if (image) {
             //@ts-ignore
@@ -89,10 +87,7 @@ var ReceiptPrinter = /** @class */ (function (_super) {
     ReceiptPrinter.prototype.printReceiptCashoutBody = function (printer, data) {
         // Sales info
         var _this = this;
-        printer
-            .println("Sales Cashout")
-            .feed(2)
-            .align("LT");
+        printer.println("Sales Cashout").feed(2).align("LT");
         if (data.printTerminal) {
             printer.println("Cashout for POS terminal: " + data.printTerminal);
         }
@@ -134,10 +129,7 @@ var ReceiptPrinter = /** @class */ (function (_super) {
             .feed();
         // Opening balances
         var grandTotal = 0;
-        printer
-            .style("B")
-            .println("Opening Balances")
-            .feed(1);
+        printer.style("B").println("Opening Balances").feed(1);
         if (data.openingBalances && data.openingBalances.length) {
             printer
                 .style("B")
@@ -166,10 +158,7 @@ var ReceiptPrinter = /** @class */ (function (_super) {
             .feed();
         // Closing balances
         var grandTotalClosing = 0;
-        printer
-            .style("B")
-            .println("Closing Balances")
-            .feed(1);
+        printer.style("B").println("Closing Balances").feed(1);
         if (data.closingBalances && data.closingBalances.length) {
             printer
                 .style("B")
@@ -289,10 +278,7 @@ var ReceiptPrinter = /** @class */ (function (_super) {
                         else {
                             _this.printReceiptCashoutBody(printer_1, data);
                         }
-                        printer_1
-                            .feed(3)
-                            .cut()
-                            .close();
+                        printer_1.feed(3).cut().close();
                         // Give it at least 5 seconds to print before finishing the job
                         setTimeout(function () {
                             _this.finishPrintJob(printJobData.id);

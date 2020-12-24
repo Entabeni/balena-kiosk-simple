@@ -34,6 +34,11 @@ const websocketUrl = `wss://${backendUrl}/cable`;
 interface PrintJobData {
   newPrintJob: {
     id: string;
+  };
+}
+interface PrintJobQueryData {
+  newPrintJob: {
+    id: string;
     printData: string;
     printJobType: string;
     resolution: string;
@@ -46,17 +51,29 @@ interface PrintJobData {
 interface PrintJobVariables {
   printTerminalId: string;
 }
+interface PrintJobQueryVariables {
+  printTerminalId: string;
+}
 const PRINT_JOBS_SUBSCRIPTION = gql`
   subscription onNewPrintJob($printTerminalId: String!) {
     newPrintJob(printTerminalId: $printTerminalId) {
       id
-      printData
-      printJobType
-      resolution
-      status
-      accessRecordId
-      printTerminalId
-      saleId
+    }
+  }
+`;
+const PRINT_JOBS_QUERY = gql`
+  query printJob($id: String!) {
+    pos {
+      printJob(id: $id) {
+        id
+        printData
+        printJobType
+        resolution
+        status
+        accessRecordId
+        printTerminalId
+        saleId
+      }
     }
   }
 `;
@@ -77,22 +94,6 @@ const SCAN_JOBS_SUBSCRIPTION = gql`
       id
       status
       accessRecordId
-    }
-  }
-`;
-
-export const GET_SALE_DETAILS_BY_ID = gql`
-  query sale($id: String!) {
-    pos {
-      sale(id: $id) {
-        saleLineItems {
-          guest {
-            id
-            fullName
-            email
-          }
-        }
-      }
     }
   }
 `;
@@ -223,11 +224,23 @@ class WebSocket {
       })
       .subscribe({
         next(res) {
-          console.log("TCL: next -> res", res);
           const printJob = res.data.newPrintJob;
-          if (printJob.status === "created") {
-            that.pushPrintJobToQueue(printJob);
-          }
+          that.apolloClient
+            .mutate<PrintJobQueryData, PrintJobQueryVariables>({
+              mutation: PRINT_JOBS_QUERY,
+              variables: {
+                id: printJob.id,
+              },
+            })
+            .then(({ data: printJobQuery }) => {
+              const printJobQueryData = printJobQuery.pos.printJob;
+              if (printJob.status === "created") {
+                this.pushPrintJobToQueue(printJobQueryData);
+              }
+            })
+            .catch((e) => {
+              console.log("Scanning error printing error", e);
+            });
         },
         error(err: string) {
           console.error("err", err);

@@ -7,7 +7,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.GET_SALE_DETAILS_BY_ID = void 0;
 //@ts-ignore
 global.fetch = require("node-fetch");
 var action_cable_node_1 = __importDefault(require("action-cable-node"));
@@ -37,9 +36,9 @@ if (isPreProd) {
     backendUrl = "pre-production-api.herokuapp.com";
 }
 var websocketUrl = "wss://" + backendUrl + "/cable";
-var PRINT_JOBS_SUBSCRIPTION = apollo_boost_1.gql(templateObject_1 || (templateObject_1 = __makeTemplateObject(["\n  subscription onNewPrintJob($printTerminalId: String!) {\n    newPrintJob(printTerminalId: $printTerminalId) {\n      id\n      printData\n      printJobType\n      resolution\n      status\n      accessRecordId\n      printTerminalId\n      saleId\n    }\n  }\n"], ["\n  subscription onNewPrintJob($printTerminalId: String!) {\n    newPrintJob(printTerminalId: $printTerminalId) {\n      id\n      printData\n      printJobType\n      resolution\n      status\n      accessRecordId\n      printTerminalId\n      saleId\n    }\n  }\n"])));
-var SCAN_JOBS_SUBSCRIPTION = apollo_boost_1.gql(templateObject_2 || (templateObject_2 = __makeTemplateObject(["\n  subscription onNewScanJob($printTerminalId: String!) {\n    newScanJob(printTerminalId: $printTerminalId) {\n      id\n      status\n      accessRecordId\n    }\n  }\n"], ["\n  subscription onNewScanJob($printTerminalId: String!) {\n    newScanJob(printTerminalId: $printTerminalId) {\n      id\n      status\n      accessRecordId\n    }\n  }\n"])));
-exports.GET_SALE_DETAILS_BY_ID = apollo_boost_1.gql(templateObject_3 || (templateObject_3 = __makeTemplateObject(["\n  query sale($id: String!) {\n    pos {\n      sale(id: $id) {\n        saleLineItems {\n          guest {\n            id\n            fullName\n            email\n          }\n        }\n      }\n    }\n  }\n"], ["\n  query sale($id: String!) {\n    pos {\n      sale(id: $id) {\n        saleLineItems {\n          guest {\n            id\n            fullName\n            email\n          }\n        }\n      }\n    }\n  }\n"])));
+var PRINT_JOBS_SUBSCRIPTION = apollo_boost_1.gql(templateObject_1 || (templateObject_1 = __makeTemplateObject(["\n  subscription onNewPrintJob($printTerminalId: String!) {\n    newPrintJob(printTerminalId: $printTerminalId) {\n      id\n    }\n  }\n"], ["\n  subscription onNewPrintJob($printTerminalId: String!) {\n    newPrintJob(printTerminalId: $printTerminalId) {\n      id\n    }\n  }\n"])));
+var PRINT_JOBS_QUERY = apollo_boost_1.gql(templateObject_2 || (templateObject_2 = __makeTemplateObject(["\n  query printJob($id: String!) {\n    pos {\n      printJob(id: $id) {\n        id\n        printData\n        printJobType\n        resolution\n        status\n        accessRecordId\n        printTerminalId\n        saleId\n      }\n    }\n  }\n"], ["\n  query printJob($id: String!) {\n    pos {\n      printJob(id: $id) {\n        id\n        printData\n        printJobType\n        resolution\n        status\n        accessRecordId\n        printTerminalId\n        saleId\n      }\n    }\n  }\n"])));
+var SCAN_JOBS_SUBSCRIPTION = apollo_boost_1.gql(templateObject_3 || (templateObject_3 = __makeTemplateObject(["\n  subscription onNewScanJob($printTerminalId: String!) {\n    newScanJob(printTerminalId: $printTerminalId) {\n      id\n      status\n      accessRecordId\n    }\n  }\n"], ["\n  subscription onNewScanJob($printTerminalId: String!) {\n    newScanJob(printTerminalId: $printTerminalId) {\n      id\n      status\n      accessRecordId\n    }\n  }\n"])));
 var UPDATE_SCAN_JOB_MUTATION = apollo_boost_1.gql(templateObject_4 || (templateObject_4 = __makeTemplateObject(["\n  mutation UpdateScanJobMutation(\n    $scanJobId: String!\n    $status: String!\n    $cardRfid: String\n  ) {\n    pos {\n      updateScanJob(id: $scanJobId, status: $status, cardRfid: $cardRfid) {\n        id\n        status\n        accessRecordId\n      }\n    }\n  }\n"], ["\n  mutation UpdateScanJobMutation(\n    $scanJobId: String!\n    $status: String!\n    $cardRfid: String\n  ) {\n    pos {\n      updateScanJob(id: $scanJobId, status: $status, cardRfid: $cardRfid) {\n        id\n        status\n        accessRecordId\n      }\n    }\n  }\n"])));
 var UPDATE_ACCESS_RECORD_MUTATION = apollo_boost_1.gql(templateObject_5 || (templateObject_5 = __makeTemplateObject(["\n  mutation UpdateAccessRecordMutation(\n    $accessRecordId: String!\n    $cardRfid: String!\n  ) {\n    pos {\n      updateAccessRecord(id: $accessRecordId, cardRfid: $cardRfid) {\n        id\n      }\n    }\n  }\n"], ["\n  mutation UpdateAccessRecordMutation(\n    $accessRecordId: String!\n    $cardRfid: String!\n  ) {\n    pos {\n      updateAccessRecord(id: $accessRecordId, cardRfid: $cardRfid) {\n        id\n      }\n    }\n  }\n"])));
 var WebSocket = /** @class */ (function () {
@@ -121,11 +120,25 @@ var WebSocket = /** @class */ (function () {
         })
             .subscribe({
             next: function (res) {
-                console.log("TCL: next -> res", res);
+                var _this = this;
                 var printJob = res.data.newPrintJob;
-                if (printJob.status === "created") {
-                    that.pushPrintJobToQueue(printJob);
-                }
+                that.apolloClient
+                    .mutate({
+                    mutation: PRINT_JOBS_QUERY,
+                    variables: {
+                        id: printJob.id,
+                    },
+                })
+                    .then(function (_a) {
+                    var printJobQuery = _a.data;
+                    var printJobQueryData = printJobQuery.pos.printJob;
+                    if (printJob.status === "created") {
+                        _this.pushPrintJobToQueue(printJobQueryData);
+                    }
+                })
+                    .catch(function (e) {
+                    console.log("Scanning error printing error", e);
+                });
             },
             error: function (err) {
                 console.error("err", err);

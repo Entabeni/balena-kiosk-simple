@@ -11,9 +11,17 @@ function reverse_window_coordinates () {
   fi 
 }
 
-curl -X POST --header "Content-Type:application/json" \
-    --data '{"appId": 1720177}' \
-    "$BALENA_SUPERVISOR_ADDRESS/v1/purge?apikey=$BALENA_SUPERVISOR_API_KEY"
+# FILE=""
+# DIR="/tmp"
+# # init
+# # look for empty dir 
+# if [ "$(ls -A $DIR)" ]; then
+#      echo "Take action $DIR is not Empty"
+#       curl -X POST --header "Content-Type:application/json" "$BALENA_SUPERVISOR_ADDRESS/v2/applications/$BALENA_APP_ID/purge?apikey=$BALENA_SUPERVISOR_API_KEY"
+# else
+#     echo "$DIR is Empty"
+# fi
+
 # Run balena base image entrypoint script
 /usr/bin/entry.sh echo "Running balena base image entrypoint..."
 

@@ -1,5 +1,5 @@
 import NodePrinter from "./NodePrint";
-
+// @ts-ignore
 import { USB, Printer, Image } from "escpos";
 const path = require("path");
 
@@ -95,10 +95,7 @@ class ReceiptPrinter extends NodePrinter {
   }
 
   printReceiptHeader(printer: Printer, image: Image | Error, data: ReciptData) {
-    printer
-      .align("CT")
-      .size(1, 1)
-      .style("NORMAL");
+    printer.align("CT").size(1, 1).style("NORMAL");
 
     // Resort logo
     if (image) {
@@ -134,10 +131,7 @@ class ReceiptPrinter extends NodePrinter {
   printReceiptCashoutBody(printer: Printer, data: ReciptData) {
     // Sales info
 
-    printer
-      .println("Sales Cashout")
-      .feed(2)
-      .align("LT");
+    printer.println("Sales Cashout").feed(2).align("LT");
 
     if (data.printTerminal) {
       printer.println("Cashout for POS terminal: " + data.printTerminal);
@@ -194,10 +188,7 @@ class ReceiptPrinter extends NodePrinter {
     // Opening balances
 
     let grandTotal = 0;
-    printer
-      .style("B")
-      .println("Opening Balances")
-      .feed(1);
+    printer.style("B").println("Opening Balances").feed(1);
 
     if (data.openingBalances && data.openingBalances.length) {
       printer
@@ -239,10 +230,7 @@ class ReceiptPrinter extends NodePrinter {
       .feed();
     // Closing balances
     let grandTotalClosing = 0;
-    printer
-      .style("B")
-      .println("Closing Balances")
-      .feed(1);
+    printer.style("B").println("Closing Balances").feed(1);
 
     if (data.closingBalances && data.closingBalances.length) {
       printer
@@ -410,10 +398,7 @@ class ReceiptPrinter extends NodePrinter {
             } else {
               this.printReceiptCashoutBody(printer, data);
             }
-            printer
-              .feed(3)
-              .cut()
-              .close();
+            printer.feed(3).cut().close();
 
             // Give it at least 5 seconds to print before finishing the job
             setTimeout(() => {
