@@ -14,7 +14,6 @@ var action_cable_node_1 = __importDefault(require("action-cable-node"));
 var node_fetch_1 = __importDefault(require("node-fetch"));
 //@ts-ignore
 var apollo_boost_1 = require("apollo-boost");
-//@ts-ignore
 var apollo_client_1 = __importDefault(require("apollo-client"));
 //@ts-ignore
 var apollo_link_1 = require("apollo-link");
@@ -90,6 +89,7 @@ var WebSocket = /** @class */ (function () {
         // Extend the network interface with the WebSocket
         var link = apollo_link_1.split(function (_a) {
             var query = _a.query;
+            // @ts-ignore
             var _b = apollo_utilities_1.getMainDefinition(query), kind = _b.kind, operation = _b.operation;
             return kind === "OperationDefinition" && operation === "subscription";
         }, wsLink, httpLink);
@@ -105,7 +105,6 @@ var WebSocket = /** @class */ (function () {
     WebSocket.prototype.subscribe = function (token, baseUrl) {
         this.initClient(token, baseUrl);
         var tokenDecoded = jwt_decode_1.default(token);
-        console.log("subscribe -> tokenDecoded", tokenDecoded);
         var that = this;
         this.apolloClient
             .subscribe({
@@ -120,20 +119,19 @@ var WebSocket = /** @class */ (function () {
         })
             .subscribe({
             next: function (res) {
-                var _this = this;
-                var printJob = res.data.newPrintJob;
+                var printJob = res.data.newPrintJob.id;
                 that.apolloClient
-                    .mutate({
-                    mutation: PRINT_JOBS_QUERY,
+                    .query({
+                    query: PRINT_JOBS_QUERY,
                     variables: {
-                        id: printJob.id,
+                        id: printJob,
                     },
                 })
                     .then(function (_a) {
                     var printJobQuery = _a.data;
                     var printJobQueryData = printJobQuery.pos.printJob;
-                    if (printJob.status === "created") {
-                        _this.pushPrintJobToQueue(printJobQueryData);
+                    if (printJobQueryData.status === "created") {
+                        that.pushPrintJobToQueue(printJobQueryData);
                     }
                 })
                     .catch(function (e) {
@@ -182,8 +180,6 @@ var WebSocket = /** @class */ (function () {
         });
     };
     WebSocket.prototype.updateAccessRecord = function (accessRecordId, cardRfid) {
-        console.log("TCL: updateAccessRecord -> cardRfid", cardRfid);
-        console.log("TCL: updateAccessRecord -> accessRecordId", accessRecordId);
         return this.apolloClient
             .mutate({
             mutation: UPDATE_ACCESS_RECORD_MUTATION,

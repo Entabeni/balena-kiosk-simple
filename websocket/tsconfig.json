@@ -4,6 +4,7 @@
     "module": "none",
     "lib": ["es2015", "dom"],
     "allowJs": true,
+    "moduleResolution": "node",
     "outDir": "build",
     "types": ["node"],
     "rootDir": "src",

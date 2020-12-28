@@ -40,9 +40,9 @@ class CardPrinter extends NodePrinter {
     });
     const filename = `${v4()}.pdf`;
     var file = fs.createWriteStream(mp(`../downloads/${filename}`));
-    https.get(url, function (response) {
+    https.get(url, function(response) {
       response.pipe(file);
-      file.on("finish", function () {
+      file.on("finish", function() {
         file.close();
         callback(filename);
       });

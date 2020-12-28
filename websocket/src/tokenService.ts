@@ -112,6 +112,7 @@ class TokenService {
     // Extend the network interface with the WebSocket
     const link = split(
       ({ query }) => {
+        // @ts-ignore
         const { kind, operation } = getMainDefinition(query);
         return kind === "OperationDefinition" && operation === "subscription";
       },

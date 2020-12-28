@@ -89,6 +89,7 @@ var TokenService = /** @class */ (function () {
         // Extend the network interface with the WebSocket
         var link = apollo_link_1.split(function (_a) {
             var query = _a.query;
+            // @ts-ignore
             var _b = apollo_utilities_1.getMainDefinition(query), kind = _b.kind, operation = _b.operation;
             return kind === "OperationDefinition" && operation === "subscription";
         }, wsLink, httpLink);

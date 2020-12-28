@@ -6,7 +6,6 @@ import ActionCable from "action-cable-node";
 import fetch from "node-fetch";
 //@ts-ignore
 import { gql, HttpLink, InMemoryCache } from "apollo-boost";
-//@ts-ignore
 import ApolloClient from "apollo-client";
 //@ts-ignore
 import { ApolloLink, from, split } from "apollo-link";
@@ -32,27 +31,31 @@ if (isPreProd) {
 }
 const websocketUrl = `wss://${backendUrl}/cable`;
 interface PrintJobData {
-  newPrintJob: {
-    id: string;
+  data: {
+    newPrintJob: {
+      id: string;
+    };
   };
 }
 interface PrintJobQueryData {
-  newPrintJob: {
-    id: string;
-    printData: string;
-    printJobType: string;
-    resolution: string;
-    status: string;
-    accessRecordId: string;
-    printTerminalId: string;
-    saleId: string;
+  pos: {
+    printJob: {
+      id: string;
+      printData: string;
+      printJobType: string;
+      resolution: string;
+      status: string;
+      accessRecordId: string;
+      printTerminalId: string;
+      saleId: string;
+    };
   };
 }
 interface PrintJobVariables {
   printTerminalId: string;
 }
 interface PrintJobQueryVariables {
-  printTerminalId: string;
+  id: string;
 }
 const PRINT_JOBS_SUBSCRIPTION = gql`
   subscription onNewPrintJob($printTerminalId: String!) {
@@ -187,6 +190,7 @@ class WebSocket {
     // Extend the network interface with the WebSocket
     const link = split(
       ({ query }) => {
+        // @ts-ignore
         const { kind, operation } = getMainDefinition(query);
         return kind === "OperationDefinition" && operation === "subscription";
       },
@@ -208,7 +212,6 @@ class WebSocket {
   subscribe(token: string, baseUrl: string) {
     this.initClient(token, baseUrl);
     const tokenDecoded = jwtDecode(token);
-    console.log("subscribe -> tokenDecoded", tokenDecoded);
 
     const that = this;
     this.apolloClient
@@ -224,18 +227,18 @@ class WebSocket {
       })
       .subscribe({
         next(res) {
-          const printJob = res.data.newPrintJob;
+          const printJob = res.data.newPrintJob.id;
           that.apolloClient
-            .mutate<PrintJobQueryData, PrintJobQueryVariables>({
-              mutation: PRINT_JOBS_QUERY,
+            .query<PrintJobQueryData, PrintJobQueryVariables>({
+              query: PRINT_JOBS_QUERY,
               variables: {
-                id: printJob.id,
+                id: printJob,
               },
             })
             .then(({ data: printJobQuery }) => {
               const printJobQueryData = printJobQuery.pos.printJob;
-              if (printJob.status === "created") {
-                this.pushPrintJobToQueue(printJobQueryData);
+              if (printJobQueryData.status === "created") {
+                that.pushPrintJobToQueue(printJobQueryData);
               }
             })
             .catch((e) => {
@@ -289,8 +292,6 @@ class WebSocket {
   }
 
   updateAccessRecord(accessRecordId, cardRfid) {
-    console.log("TCL: updateAccessRecord -> cardRfid", cardRfid);
-    console.log("TCL: updateAccessRecord -> accessRecordId", accessRecordId);
     return this.apolloClient
       .mutate({
         mutation: UPDATE_ACCESS_RECORD_MUTATION,
