@@ -1,3 +1,4 @@
+import { PrintJobQueryData } from "./../ws";
 // @ts-ignore
 import { v4 } from "uuid";
 import fs from "fs";
@@ -9,7 +10,6 @@ printerMagicard.setPrinter("Magicard_600");
 const pathCardPrint = require("path");
 
 class CardPrinter extends NodePrinter {
-  mq: any;
   ws: any;
   qName: any;
   currentJobId: any;
@@ -17,15 +17,12 @@ class CardPrinter extends NodePrinter {
   currentState: any;
   numTimesCheckedPrinted: any;
   state: any;
-  constructor(mq: any, ws: any, qName: any, state: any) {
-    super(mq, ws, qName, state);
-    this.mq = mq;
+  constructor(ws: any, qName: any) {
+    super(ws, qName);
     this.ws = ws;
     this.qName = qName;
-    this.finishPrintJob = super.finishPrintJob;
     this.currentJobId = null;
     this.numTimesCheckedPrinted = 0;
-    this.state = state;
   }
   downloadPDF(url, callback) {
     const directory = mp("../downloads/");
@@ -50,7 +47,6 @@ class CardPrinter extends NodePrinter {
   }
 
   printingStarted(printJobData, jobId, message) {
-    this.mq.deleteMessage(this.qName, printJobData.id, (success) => {});
     this.currentJobId = null;
     this.state.idle();
   }
@@ -73,7 +69,6 @@ class CardPrinter extends NodePrinter {
       this.numTimesCheckedPrinted === 27
     ) {
       this.numTimesCheckedPrinted = 0;
-      this.finishPrintJob(printJobData.id);
       return;
     }
 
@@ -99,14 +94,14 @@ class CardPrinter extends NodePrinter {
    * Download PDF and print it in FITPLOT mode
    * and listen for when it starts
    */
-  beginPrinting(printJobData) {
-    const message = JSON.parse(printJobData.message);
+  beginPrinting(printJobData: PrintJobQueryData) {
+    const message = JSON.parse(printJobData.pos.printJob.printData);
 
     // Update print job status to processing
 
-    const { pdfUrl } = JSON.parse(message.data);
+    const pdfUrl = message.pdfUrl;
+
     if (!pdfUrl) {
-      this.finishPrintJob(printJobData.id);
       return;
     }
 
@@ -118,7 +113,7 @@ class CardPrinter extends NodePrinter {
           options,
           "Magicard_600"
         );
-        this.checkPrintingStarted(printJobData, printString, message);
+        // this.checkPrintingStarted(printJobData, printString, message);
       }, 1500);
     });
   }

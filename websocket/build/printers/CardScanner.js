@@ -20,14 +20,13 @@ var NodePrint_1 = __importDefault(require("./NodePrint"));
 var CardRead_1 = __importDefault(require("./CardRead"));
 var CardScanner = /** @class */ (function (_super) {
     __extends(CardScanner, _super);
-    function CardScanner(mq, ws, qName, state) {
-        var _this = _super.call(this, mq, ws, qName, state) || this;
-        _this.mq = mq;
+    function CardScanner(ws, qName) {
+        var _this = _super.call(this, ws, qName) || this;
+        // this.mq = mq;
         _this.ws = ws;
         _this.qName = qName;
         _this.currentJobId = null;
         _this.numTimesCheckedPrinted = 0;
-        _this.state = state;
         return _this;
     }
     /**
@@ -39,7 +38,7 @@ var CardScanner = /** @class */ (function (_super) {
         this.currentJobId = printJobData.id;
         var message = JSON.parse(printJobData.message);
         if (!message.id) {
-            this.finishPrintJob(printJobData.id);
+            // this.finishPrintJob(printJobData.id);
             return;
         }
         if (message.status === "cashDrawerOpen") {
@@ -47,12 +46,12 @@ var CardScanner = /** @class */ (function (_super) {
             cashPort_1.write("open", function () {
                 cashPort_1.close();
             });
-            this.mq.deleteMessage(this.qName, printJobData.id, function (success) {
-                return console.log("deleted message", success);
-            });
+            // this.mq.deleteMessage(this.qName, printJobData.id, (success) =>
+            //   console.log("deleted message", success)
+            // );
             this.ws.updateScanJob(message.id, "cashDrawerOpenCompleted");
             this.currentJobId = null;
-            this.state.idle();
+            // this.state.idle();
             return;
         }
         // Update print job status to processing
@@ -61,28 +60,27 @@ var CardScanner = /** @class */ (function (_super) {
     };
     CardScanner.prototype.openScanner = function (printJobData) {
         var _this = this;
-        var message = JSON.parse(printJobData.message);
         var cardReader = new CardRead_1.default("ttyDesktopReader");
         var successfulScan = false;
         cardReader.startScanning();
         cardReader.readCardNumber(function (cardNumberHex) {
             if (_this.currentState !== "idle") {
                 var last8Digits = cardNumberHex.substr(cardNumberHex.length - 8, cardNumberHex.length);
-                if (message && message.accessRecordId) {
-                    _this.ws.updateAccessRecord(message.accessRecordId, cardNumberHex);
+                if (printJobData && printJobData.accessRecordId) {
+                    _this.ws.updateAccessRecord(printJobData.accessRecordId, cardNumberHex);
                 }
                 successfulScan = true;
-                _this.mq.deleteMessage(_this.qName, printJobData.id, function (success) { });
-                _this.ws.updateScanJob(message.id, "completed", cardNumberHex);
+                // this.mq.deleteMessage(this.qName, printJobData.id, (success) => {});
+                _this.ws.updateScanJob(printJobData.id, "completed", cardNumberHex);
                 _this.currentJobId = null;
-                _this.state.idle();
+                // this.state.idle();
             }
         });
         setTimeout(function () {
             if (!successfulScan) {
-                _this.mq.deleteMessage(_this.qName, printJobData.id, function (success) { });
+                // this.mq.deleteMessage(this.qName, printJobData.id, (success) => {});
                 _this.currentJobId = null;
-                _this.state.idle();
+                // this.state.idle();
             }
         }, 9000);
     };

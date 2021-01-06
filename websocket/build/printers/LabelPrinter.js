@@ -58,19 +58,16 @@ function addWordOntoLine(line, word) {
 }
 var LabelPrinter = /** @class */ (function (_super) {
     __extends(LabelPrinter, _super);
-    function LabelPrinter(mq, ws, qName, state) {
-        var _this = _super.call(this, mq, ws, qName, state) || this;
+    function LabelPrinter(mq, ws, qName) {
+        var _this = _super.call(this, ws, qName) || this;
         _this.mq = mq;
         _this.ws = ws;
         _this.qName = qName;
-        _this.finishPrintJob = _super.prototype.finishPrintJob;
         _this.currentJobId = null;
         _this.numTimesCheckedPrinted = 0;
-        _this.state = state;
         return _this;
     }
     LabelPrinter.prototype.beginPrinting = function (printJobData) {
-        var _this = this;
         var message = JSON.parse(printJobData.message);
         var addressJson = JSON.parse(JSON.parse(message.data));
         var purchaserName = addressJson.purchaserName, address1 = addressJson.address1, address2 = addressJson.address2, state = addressJson.state, zip = addressJson.zip, country = addressJson.country, city = addressJson.city;
@@ -91,7 +88,7 @@ var LabelPrinter = /** @class */ (function (_super) {
                 country;
             fs_1.default.appendFile(mpTest("./log.txt"), finalString, function (err) {
                 if (err) {
-                    _this.finishPrintJob(printJobData.id);
+                    // this.finishPrintJob(printJobData.id);
                 }
                 else {
                     node_native_printer_1.default.print(mpTest("./log.txt"), {
@@ -99,7 +96,7 @@ var LabelPrinter = /** @class */ (function (_super) {
                         InputSlot: printerSide,
                         pageSize: "24_mm__1___Label__Auto_",
                     });
-                    _this.finishPrintJob(printJobData.id);
+                    // this.finishPrintJob(printJobData.id);
                 }
             });
         });

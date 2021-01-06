@@ -32,15 +32,14 @@ function mp(relPath) {
 exports.mp = mp;
 var ReceiptPrinter = /** @class */ (function (_super) {
     __extends(ReceiptPrinter, _super);
-    function ReceiptPrinter(mq, ws, qName, state) {
-        var _this = _super.call(this, mq, ws, qName, state) || this;
-        _this.mq = mq;
+    function ReceiptPrinter(ws, qName) {
+        var _this = _super.call(this, ws, qName) || this;
         _this.ws = ws;
         _this.qName = qName;
         _this.currentJobId = null;
         _this.numTimesCheckedPrinted = 0;
-        _this.state = state;
         return _this;
+        // this.state = state;
     }
     ReceiptPrinter.prototype.getRounded = function (num) {
         //@ts-ignore
@@ -57,7 +56,10 @@ var ReceiptPrinter = /** @class */ (function (_super) {
         return str;
     };
     ReceiptPrinter.prototype.printReceiptHeader = function (printer, image, data) {
-        printer.align("CT").size(1, 1).style("NORMAL");
+        printer
+            .align("CT")
+            .size(1, 1)
+            .style("NORMAL");
         // Resort logo
         if (image) {
             //@ts-ignore
@@ -87,7 +89,10 @@ var ReceiptPrinter = /** @class */ (function (_super) {
     ReceiptPrinter.prototype.printReceiptCashoutBody = function (printer, data) {
         // Sales info
         var _this = this;
-        printer.println("Sales Cashout").feed(2).align("LT");
+        printer
+            .println("Sales Cashout")
+            .feed(2)
+            .align("LT");
         if (data.printTerminal) {
             printer.println("Cashout for POS terminal: " + data.printTerminal);
         }
@@ -129,7 +134,10 @@ var ReceiptPrinter = /** @class */ (function (_super) {
             .feed();
         // Opening balances
         var grandTotal = 0;
-        printer.style("B").println("Opening Balances").feed(1);
+        printer
+            .style("B")
+            .println("Opening Balances")
+            .feed(1);
         if (data.openingBalances && data.openingBalances.length) {
             printer
                 .style("B")
@@ -158,7 +166,10 @@ var ReceiptPrinter = /** @class */ (function (_super) {
             .feed();
         // Closing balances
         var grandTotalClosing = 0;
-        printer.style("B").println("Closing Balances").feed(1);
+        printer
+            .style("B")
+            .println("Closing Balances")
+            .feed(1);
         if (data.closingBalances && data.closingBalances.length) {
             printer
                 .style("B")
@@ -261,8 +272,7 @@ var ReceiptPrinter = /** @class */ (function (_super) {
     // }
     ReceiptPrinter.prototype.beginPrinting = function (printJobData) {
         var _this = this;
-        var message = JSON.parse(printJobData.message);
-        var data = JSON.parse(message.data);
+        var message = JSON.parse(printJobData.pos.printJob.printData);
         if (receiptProductId) {
             try {
                 var device_1 = new escpos_1.USB(receiptVendorId, receiptProductId);
@@ -271,17 +281,20 @@ var ReceiptPrinter = /** @class */ (function (_super) {
                 var logo = mp("../../logos/logo-" + resortLogo + ".png");
                 escpos_1.Image.load(logo, function (image) {
                     device_1.open(function () {
-                        _this.printReceiptHeader(printer_1, image, data);
+                        _this.printReceiptHeader(printer_1, image, message);
                         if (message.printJobType === "receipt") {
-                            _this.printReceiptBody(printer_1, data);
+                            _this.printReceiptBody(printer_1, message);
                         }
                         else {
-                            _this.printReceiptCashoutBody(printer_1, data);
+                            _this.printReceiptCashoutBody(printer_1, message);
                         }
-                        printer_1.feed(3).cut().close();
+                        printer_1
+                            .feed(3)
+                            .cut()
+                            .close();
                         // Give it at least 5 seconds to print before finishing the job
                         setTimeout(function () {
-                            _this.finishPrintJob(printJobData.id);
+                            // this.finishPrintJob(printJobData.id);
                             console.log("Reciept printed");
                         }, 300);
                     });
@@ -289,7 +302,7 @@ var ReceiptPrinter = /** @class */ (function (_super) {
             }
             catch (e) {
                 setTimeout(function () {
-                    _this.finishPrintJob(printJobData.id);
+                    // this.finishPrintJob(printJobData.id);
                     console.log("Reciept not printed");
                 }, 300);
             }

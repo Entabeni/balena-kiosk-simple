@@ -45,15 +45,12 @@ node_native_printer_1.default.setPrinter("Magicard_600");
 var pathCardPrint = require("path");
 var CardPrinter = /** @class */ (function (_super) {
     __extends(CardPrinter, _super);
-    function CardPrinter(mq, ws, qName, state) {
-        var _this = _super.call(this, mq, ws, qName, state) || this;
-        _this.mq = mq;
+    function CardPrinter(ws, qName) {
+        var _this = _super.call(this, ws, qName) || this;
         _this.ws = ws;
         _this.qName = qName;
-        _this.finishPrintJob = _super.prototype.finishPrintJob;
         _this.currentJobId = null;
         _this.numTimesCheckedPrinted = 0;
-        _this.state = state;
         return _this;
     }
     CardPrinter.prototype.downloadPDF = function (url, callback) {
@@ -80,7 +77,6 @@ var CardPrinter = /** @class */ (function (_super) {
         });
     };
     CardPrinter.prototype.printingStarted = function (printJobData, jobId, message) {
-        this.mq.deleteMessage(this.qName, printJobData.id, function (success) { });
         this.currentJobId = null;
         this.state.idle();
     };
@@ -100,7 +96,6 @@ var CardPrinter = /** @class */ (function (_super) {
             !job) &&
             this.numTimesCheckedPrinted === 27) {
             this.numTimesCheckedPrinted = 0;
-            this.finishPrintJob(printJobData.id);
             return;
         }
         if ((job && job.status === "processing") ||
@@ -121,19 +116,17 @@ var CardPrinter = /** @class */ (function (_super) {
      * and listen for when it starts
      */
     CardPrinter.prototype.beginPrinting = function (printJobData) {
-        var _this = this;
-        var message = JSON.parse(printJobData.message);
+        var message = JSON.parse(printJobData.pos.printJob.printData);
         // Update print job status to processing
-        var pdfUrl = JSON.parse(message.data).pdfUrl;
+        var pdfUrl = message.pdfUrl;
         if (!pdfUrl) {
-            this.finishPrintJob(printJobData.id);
             return;
         }
         this.downloadPDF(pdfUrl, function (filename) {
             setTimeout(function () {
                 var options = { fitplot: true };
                 var printString = node_native_printer_1.default.print(NodePrint_1.mp("../downloads/" + filename), options, "Magicard_600");
-                _this.checkPrintingStarted(printJobData, printString, message);
+                // this.checkPrintingStarted(printJobData, printString, message);
             }, 1500);
         });
     };

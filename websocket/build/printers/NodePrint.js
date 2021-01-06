@@ -9,59 +9,39 @@ function mp(relPath) {
 }
 exports.mp = mp;
 var NodePrint = /** @class */ (function () {
-    function NodePrint(mq, ws, qName, state) {
-        this.mq = mq;
+    function NodePrint(ws, qName) {
         this.ws = ws;
         this.qName = qName;
-        this.finishPrintJob = this.finishPrintJob;
         this.currentJobId = null;
         this.numTimesCheckedPrinted = 0;
-        this.state = state;
     }
     /** Handle data, if no ID, end the Job */
     NodePrint.prototype.print = function (printJobData) {
-        this.currentJobId = printJobData.id;
-        var message = JSON.parse(printJobData.message);
-        if (!message.id) {
-            this.finishPrintJob(printJobData.id);
-            return;
-        }
-        else {
-        }
         /**start the print */
         this.beginPrinting(printJobData);
     };
     NodePrint.prototype.beginPrinting = function (printJobData) { };
     /** Remove the message from the queue and remove id from local state */
-    NodePrint.prototype.finishPrintJob = function (printJobId, holdUi) {
-        if (holdUi === void 0) { holdUi = false; }
-        this.mq.deleteMessage(this.qName, printJobId, function (success) {
-            return console.log(success);
-        });
-        this.currentJobId = null;
-        if (!holdUi) {
-            this.state.idle();
-        }
-    };
     /**Check every 500ms if a Job Is is set, then reseive a message from the specified Queue , Print it */
-    NodePrint.prototype.checkPrintJobs = function () {
-        var _this = this;
-        this.intervalId = setInterval(function () {
-            if (_this.currentJobId ||
-                (_this.state.currentState !== "idle" && _this.qName !== "scanJobs")) {
-                return;
-            }
-            _this.mq.receiveMessage(_this.qName, function (message) {
-                if (!message) {
-                    _this.currentJobId = null;
-                    return;
-                }
-                _this.state.updateState(_this.qName);
-                //@ts-ignore
-                _this.print(message);
-            });
-        }, 800);
-    };
+    // public checkPrintJobs() {
+    //   this.intervalId = setInterval(() => {
+    //     if (
+    //       this.currentJobId ||
+    //       (this.state.currentState !== "idle" && this.qName !== "scanJobs")
+    //     ) {
+    //       return;
+    //     }
+    //     this.mq.receiveMessage(this.qName, (message) => {
+    //       if (!message) {
+    //         this.currentJobId = null;
+    //         return;
+    //       }
+    //       this.state.updateState(this.qName);
+    //       //@ts-ignore
+    //       this.print(message);
+    //     });
+    //   }, 1200);
+    // }
     NodePrint.prototype.stop = function () {
         if (this.intervalId) {
             clearInterval(this.intervalId);

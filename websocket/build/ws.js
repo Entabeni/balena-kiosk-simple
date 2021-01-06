@@ -41,15 +41,16 @@ var SCAN_JOBS_SUBSCRIPTION = apollo_boost_1.gql(templateObject_3 || (templateObj
 var UPDATE_SCAN_JOB_MUTATION = apollo_boost_1.gql(templateObject_4 || (templateObject_4 = __makeTemplateObject(["\n  mutation UpdateScanJobMutation(\n    $scanJobId: String!\n    $status: String!\n    $cardRfid: String\n  ) {\n    pos {\n      updateScanJob(id: $scanJobId, status: $status, cardRfid: $cardRfid) {\n        id\n        status\n        accessRecordId\n      }\n    }\n  }\n"], ["\n  mutation UpdateScanJobMutation(\n    $scanJobId: String!\n    $status: String!\n    $cardRfid: String\n  ) {\n    pos {\n      updateScanJob(id: $scanJobId, status: $status, cardRfid: $cardRfid) {\n        id\n        status\n        accessRecordId\n      }\n    }\n  }\n"])));
 var UPDATE_ACCESS_RECORD_MUTATION = apollo_boost_1.gql(templateObject_5 || (templateObject_5 = __makeTemplateObject(["\n  mutation UpdateAccessRecordMutation(\n    $accessRecordId: String!\n    $cardRfid: String!\n  ) {\n    pos {\n      updateAccessRecord(id: $accessRecordId, cardRfid: $cardRfid) {\n        id\n      }\n    }\n  }\n"], ["\n  mutation UpdateAccessRecordMutation(\n    $accessRecordId: String!\n    $cardRfid: String!\n  ) {\n    pos {\n      updateAccessRecord(id: $accessRecordId, cardRfid: $cardRfid) {\n        id\n      }\n    }\n  }\n"])));
 var WebSocket = /** @class */ (function () {
-    function WebSocket(mq, state) {
+    function WebSocket() {
+        // mq: any;
         this.apolloClient = new apollo_client_1.default({
             cache: new apollo_boost_1.InMemoryCache(),
             link: apollo_link_http_1.createHttpLink({
                 uri: "/graphql",
             }),
         });
-        this.state = state;
-        this.mq = mq;
+        // this.state = state;
+        // this.mq = mq;
         this.printJobToRedis = [];
         this.scanJobToRedis = [];
     }
@@ -102,7 +103,7 @@ var WebSocket = /** @class */ (function () {
             cache: cache,
         });
     };
-    WebSocket.prototype.subscribe = function (token, baseUrl) {
+    WebSocket.prototype.subscribe = function (token, baseUrl, receiptPrintObj, cardScanObj, cardPrintPObj) {
         this.initClient(token, baseUrl);
         var tokenDecoded = jwt_decode_1.default(token);
         var that = this;
@@ -131,7 +132,16 @@ var WebSocket = /** @class */ (function () {
                     var printJobQuery = _a.data;
                     var printJobQueryData = printJobQuery.pos.printJob;
                     if (printJobQueryData.status === "created") {
-                        that.pushPrintJobToQueue(printJobQueryData);
+                        if (printJobQueryData.printJobType === "receipt" ||
+                            printJobQueryData.printJobType === "cashout") {
+                            receiptPrintObj.beginPrinting(printJobQuery);
+                        }
+                        else if (printJobQueryData.printJobType === "passMedia") {
+                            cardPrintPObj.print(printJobQuery);
+                        }
+                        else if (printJobQueryData.printJobType === "shippingLabel") {
+                            receiptPrintObj.beginPrinting(printJobQuery);
+                        }
                     }
                 })
                     .catch(function (e) {
@@ -156,7 +166,7 @@ var WebSocket = /** @class */ (function () {
                 var scanJob = res.data.newScanJob;
                 if (scanJob.status === "created" ||
                     scanJob.status === "cashDrawerOpen") {
-                    that.pushScanJobToQueue(scanJob);
+                    cardScanObj.openScanner(scanJob);
                 }
             },
             error: function (err) {
@@ -192,69 +202,6 @@ var WebSocket = /** @class */ (function () {
             .catch(function (e) {
             console.log("An error occured with updating the access record", e);
         });
-    };
-    WebSocket.prototype.clearQueue = function (printJob) {
-        var redisId = this.printJobToRedis[printJob.id];
-        if (redisId &&
-            (printJob.printJobType === "receipt" ||
-                printJob.printJobType === "cashout")) {
-            this.mq.deleteMessage("receiptPrintJobs", redisId, function (messageId) {
-                return console.log("deleted receipt print job with id", messageId);
-            });
-        }
-        else if (redisId && printJob.printJobType === "passMedia") {
-            this.mq.deleteMessage("cardPrintJobs", redisId, function (messageId) {
-                return console.log("deleted card print job with id", messageId);
-            });
-        }
-    };
-    WebSocket.prototype.pushScanJobToQueue = function (scanJob) {
-        var _this = this;
-        this.mq.sendMessage("scanJobs", JSON.stringify({
-            id: scanJob.id,
-            accessRecordId: scanJob.accessRecordId,
-            status: scanJob.status,
-        }), function (messageId) {
-            _this.scanJobToRedis[scanJob.id] = messageId;
-            console.log("Sent scan job with id", messageId);
-        });
-    };
-    WebSocket.prototype.pushPrintJobToQueue = function (printJob) {
-        var _this = this;
-        if (printJob.printJobType === "receipt" ||
-            printJob.printJobType === "cashout") {
-            this.mq.sendMessage("receiptPrintJobs", JSON.stringify({
-                id: printJob.id,
-                data: printJob.printData,
-                printJobType: printJob.printJobType,
-            }), function (messageId) {
-                _this.printJobToRedis[printJob.id] = messageId;
-                console.log("Sent receipt print job with id", messageId);
-            });
-        }
-        else if (printJob.printJobType === "passMedia") {
-            setTimeout(function () {
-                _this.mq.sendMessage("cardPrintJobs", JSON.stringify({
-                    id: printJob.id,
-                    accessRecordId: printJob.accessRecordId,
-                    data: printJob.printData,
-                }), function (messageId) {
-                    _this.printJobToRedis[printJob.id] = messageId;
-                    console.log("Sent card print job with id", messageId);
-                });
-            }, 50);
-        }
-        else if (printJob.printJobType === "shippingLabel") {
-            setTimeout(function () {
-                _this.mq.sendMessage("labelPrintJobs", JSON.stringify({
-                    id: printJob.id,
-                    data: printJob.printData,
-                }), function (messageId) {
-                    _this.printJobToRedis[printJob.id] = messageId;
-                    console.log("Sent label print job with id", messageId);
-                });
-            }, 50);
-        }
     };
     return WebSocket;
 }());

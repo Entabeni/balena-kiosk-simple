@@ -9,6 +9,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 //@ts-ignore
 global.fetch = require("node-fetch");
+//@ts-ignore
 var action_cable_node_1 = __importDefault(require("action-cable-node"));
 //@ts-ignore
 var node_fetch_1 = __importDefault(require("node-fetch"));

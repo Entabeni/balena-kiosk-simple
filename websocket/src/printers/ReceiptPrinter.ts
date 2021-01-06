@@ -1,3 +1,4 @@
+import { PrintJobQueryData } from "./../ws";
 import NodePrinter from "./NodePrint";
 // @ts-ignore
 import { USB, Printer, Image } from "escpos";
@@ -60,7 +61,6 @@ interface ReciptData {
   };
 }
 class ReceiptPrinter extends NodePrinter {
-  mq: any;
   ws: any;
   qName: any;
   currentJobId: any;
@@ -68,15 +68,14 @@ class ReceiptPrinter extends NodePrinter {
   currentState: any;
   numTimesCheckedPrinted: any;
   state: any;
-  constructor(mq: any, ws: any, qName: any, state: any) {
-    super(mq, ws, qName, state);
-    this.mq = mq;
+  constructor(ws: any, qName: any) {
+    super(ws, qName);
     this.ws = ws;
     this.qName = qName;
 
     this.currentJobId = null;
     this.numTimesCheckedPrinted = 0;
-    this.state = state;
+    // this.state = state;
   }
   getRounded(num: number) {
     //@ts-ignore
@@ -95,7 +94,10 @@ class ReceiptPrinter extends NodePrinter {
   }
 
   printReceiptHeader(printer: Printer, image: Image | Error, data: ReciptData) {
-    printer.align("CT").size(1, 1).style("NORMAL");
+    printer
+      .align("CT")
+      .size(1, 1)
+      .style("NORMAL");
 
     // Resort logo
     if (image) {
@@ -131,7 +133,10 @@ class ReceiptPrinter extends NodePrinter {
   printReceiptCashoutBody(printer: Printer, data: ReciptData) {
     // Sales info
 
-    printer.println("Sales Cashout").feed(2).align("LT");
+    printer
+      .println("Sales Cashout")
+      .feed(2)
+      .align("LT");
 
     if (data.printTerminal) {
       printer.println("Cashout for POS terminal: " + data.printTerminal);
@@ -188,7 +193,10 @@ class ReceiptPrinter extends NodePrinter {
     // Opening balances
 
     let grandTotal = 0;
-    printer.style("B").println("Opening Balances").feed(1);
+    printer
+      .style("B")
+      .println("Opening Balances")
+      .feed(1);
 
     if (data.openingBalances && data.openingBalances.length) {
       printer
@@ -230,7 +238,10 @@ class ReceiptPrinter extends NodePrinter {
       .feed();
     // Closing balances
     let grandTotalClosing = 0;
-    printer.style("B").println("Closing Balances").feed(1);
+    printer
+      .style("B")
+      .println("Closing Balances")
+      .feed(1);
 
     if (data.closingBalances && data.closingBalances.length) {
       printer
@@ -381,9 +392,8 @@ class ReceiptPrinter extends NodePrinter {
   //   printer.println(data.footerText);
   // }
 
-  beginPrinting(printJobData: { id: string; message: string }) {
-    const message = JSON.parse(printJobData.message);
-    const data = JSON.parse(message.data);
+  beginPrinting(printJobData: PrintJobQueryData) {
+    const message = JSON.parse(printJobData.pos.printJob.printData);
     if (receiptProductId) {
       try {
         const device = new USB(receiptVendorId, receiptProductId);
@@ -392,24 +402,27 @@ class ReceiptPrinter extends NodePrinter {
         const logo = mp(`../../logos/logo-${resortLogo}.png`);
         Image.load(logo, (image) => {
           device.open(() => {
-            this.printReceiptHeader(printer, image, data);
+            this.printReceiptHeader(printer, image, message);
             if (message.printJobType === "receipt") {
-              this.printReceiptBody(printer, data);
+              this.printReceiptBody(printer, message);
             } else {
-              this.printReceiptCashoutBody(printer, data);
+              this.printReceiptCashoutBody(printer, message);
             }
-            printer.feed(3).cut().close();
+            printer
+              .feed(3)
+              .cut()
+              .close();
 
             // Give it at least 5 seconds to print before finishing the job
             setTimeout(() => {
-              this.finishPrintJob(printJobData.id);
+              // this.finishPrintJob(printJobData.id);
               console.log("Reciept printed");
             }, 300);
           });
         });
       } catch (e) {
         setTimeout(() => {
-          this.finishPrintJob(printJobData.id);
+          // this.finishPrintJob(printJobData.id);
           console.log("Reciept not printed");
         }, 300);
       }

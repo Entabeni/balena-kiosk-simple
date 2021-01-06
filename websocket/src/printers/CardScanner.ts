@@ -1,24 +1,23 @@
 import NodePrinter, { mp } from "./NodePrint";
 import CardRead from "./CardRead";
+import { NewScanJobData } from "../ws";
 
 class CardScanner extends NodePrinter {
-  mq: any;
+  // mq: any;
   ws: any;
   qName: any;
   currentJobId: any;
   intervalId: any;
   currentState: any;
   numTimesCheckedPrinted: any;
-  state: any;
-  constructor(mq: any, ws: any, qName: any, state: any) {
-    super(mq, ws, qName, state);
-    this.mq = mq;
+  constructor(ws: any, qName: any) {
+    super(ws, qName);
+    // this.mq = mq;
     this.ws = ws;
     this.qName = qName;
 
     this.currentJobId = null;
     this.numTimesCheckedPrinted = 0;
-    this.state = state;
   }
   /**
    * If no message ID, end the job
@@ -29,7 +28,7 @@ class CardScanner extends NodePrinter {
     this.currentJobId = printJobData.id;
     const message = JSON.parse(printJobData.message);
     if (!message.id) {
-      this.finishPrintJob(printJobData.id);
+      // this.finishPrintJob(printJobData.id);
       return;
     }
     if (message.status === "cashDrawerOpen") {
@@ -39,12 +38,12 @@ class CardScanner extends NodePrinter {
         cashPort.close();
       });
 
-      this.mq.deleteMessage(this.qName, printJobData.id, (success) =>
-        console.log("deleted message", success)
-      );
+      // this.mq.deleteMessage(this.qName, printJobData.id, (success) =>
+      //   console.log("deleted message", success)
+      // );
       this.ws.updateScanJob(message.id, "cashDrawerOpenCompleted");
       this.currentJobId = null;
-      this.state.idle();
+      // this.state.idle();
       return;
     }
     // Update print job status to processing
@@ -52,9 +51,7 @@ class CardScanner extends NodePrinter {
     this.openScanner(printJobData);
   }
 
-  openScanner(printJobData) {
-    const message = JSON.parse(printJobData.message);
-
+  openScanner(printJobData: NewScanJobData) {
     const cardReader = new CardRead("ttyDesktopReader");
     let successfulScan = false;
     cardReader.startScanning();
@@ -64,21 +61,24 @@ class CardScanner extends NodePrinter {
           cardNumberHex.length - 8,
           cardNumberHex.length
         );
-        if (message && message.accessRecordId) {
-          this.ws.updateAccessRecord(message.accessRecordId, cardNumberHex);
+        if (printJobData && printJobData.accessRecordId) {
+          this.ws.updateAccessRecord(
+            printJobData.accessRecordId,
+            cardNumberHex
+          );
         }
         successfulScan = true;
-        this.mq.deleteMessage(this.qName, printJobData.id, (success) => {});
-        this.ws.updateScanJob(message.id, "completed", cardNumberHex);
+        // this.mq.deleteMessage(this.qName, printJobData.id, (success) => {});
+        this.ws.updateScanJob(printJobData.id, "completed", cardNumberHex);
         this.currentJobId = null;
-        this.state.idle();
+        // this.state.idle();
       }
     });
     setTimeout(() => {
       if (!successfulScan) {
-        this.mq.deleteMessage(this.qName, printJobData.id, (success) => {});
+        // this.mq.deleteMessage(this.qName, printJobData.id, (success) => {});
         this.currentJobId = null;
-        this.state.idle();
+        // this.state.idle();
       }
     }, 9000);
   }

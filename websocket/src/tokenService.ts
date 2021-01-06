@@ -1,6 +1,7 @@
 //@ts-ignore
 global.fetch = require("node-fetch");
 
+//@ts-ignore
 import ActionCable from "action-cable-node";
 //@ts-ignore
 import fetch from "node-fetch";

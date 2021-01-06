@@ -49,17 +49,14 @@ class LabelPrinter extends NodePrinter {
   intervalId: any;
   currentState: any;
   numTimesCheckedPrinted: any;
-  state: any;
-  constructor(mq: any, ws: any, qName: any, state: any) {
-    super(mq, ws, qName, state);
+  constructor(mq: any, ws: any, qName: any) {
+    super(ws, qName);
 
     this.mq = mq;
     this.ws = ws;
     this.qName = qName;
-    this.finishPrintJob = super.finishPrintJob;
     this.currentJobId = null;
     this.numTimesCheckedPrinted = 0;
-    this.state = state;
   }
 
   beginPrinting(printJobData: { id: string; message: string }) {
@@ -93,14 +90,14 @@ class LabelPrinter extends NodePrinter {
         country;
       fs.appendFile(mpTest("./log.txt"), finalString, (err) => {
         if (err) {
-          this.finishPrintJob(printJobData.id);
+          // this.finishPrintJob(printJobData.id);
         } else {
           printer.print(mpTest("./log.txt"), {
             landscape: true,
             InputSlot: printerSide,
             pageSize: "24_mm__1___Label__Auto_",
           });
-          this.finishPrintJob(printJobData.id);
+          // this.finishPrintJob(printJobData.id);
         }
       });
     });
