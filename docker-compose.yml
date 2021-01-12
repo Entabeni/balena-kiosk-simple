@@ -4,14 +4,13 @@ volumes:
   cookies:
   cups:
 services:
-  # redis:
-  #   network_mode: host
-  #   build: ./redis
-  kiosk:
-    build: ./kiosk
+  browser:
+    build: ./browser
+    ports:
+      - "5011" # management API (optional)
+      - "35173" # Chromium debugging port (optional)
     depends_on:
       - "websocket"
-      # - "redis"
       - "cups"
     privileged: true
     environment:
@@ -26,8 +25,6 @@ services:
     network_mode: host
     restart: always
     build: ./websocket
-    # depends_on:
-    #   - redis
     ports:
       - "80"
       - "8888:8888"
@@ -52,7 +49,6 @@ services:
     build: ./cups
     depends_on:
       - "websocket"
-      # - "redis"
     ports:
       - "80"
     privileged: true
