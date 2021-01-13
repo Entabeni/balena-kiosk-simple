@@ -33,6 +33,6 @@ if [[ ! -z $SHOW_CURSOR ]] && [[ "$SHOW_CURSOR" -eq "1" ]]
     echo "Disabling cursor"
 fi
 
-su -c "export DISPLAY=:0 && startx /usr/src/app/startx.sh $CURSOR" - chromium
+su -c "export DISPLAY=:0 && export LAUNCH_URL=https://balena-poc.herokuapp.com/ && export ROTATE_DISPLAY=normal && export WINDOW_SIZE=1980,1080 && export KIOSK=0 && startx /usr/src/app/startx.sh $CURSOR" - chromium
 sleep 6
 curl --data "url=https://balena-poc.herokuapp.com/" http://localhost:5011/url
